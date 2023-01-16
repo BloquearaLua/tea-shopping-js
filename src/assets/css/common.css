@@ -3,6 +3,29 @@
     padding: 0;
 }
 
+section {
+    flex: 1;
+    overflow: hidden;
+}
+
 ul {
     list-style: none;
+}
+
+input {
+    border: none;
+    outline: none;
+    background: none;
+}
+
+input:focus {
+    border: none;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
 }

@@ -14,9 +14,9 @@
 </template>
 
 <script>
-import '../../assets/js/flexible';
+import '@/assets/js/flexible';
 export default {
-  name: "Tabbar",
+  name: "TabBar",
   data() {
     return {
       tabList: [
@@ -24,36 +24,36 @@ export default {
             title: '首页',
             alt: 'home',
             path: '/home',
-            active: './images/home.png',
-            selected: './images/home-select.png',
+            active: '/images/home.png',
+            selected: '/images/home-select.png',
         },
         {
             title: '分类',
             alt: 'categories',
             path: '/categories',
-            active: './images/categories.png',
-            selected: './images/categories-select.png',
+            active: '/images/categories.png',
+            selected: '/images/categories-select.png',
         },
         {
             title: '购物车',
             alt: 'cart',
             path: '/cart',
-            active: './images/cart.png',
-            selected: './images/cart-select.png',
+            active: '/images/cart.png',
+            selected: '/images/cart-select.png',
         },
         {
             title: '我的',
             alt: 'my',
             path: '/my',
-            active: './images/my.png',
-            selected: './images/my-select.png',
+            active: '/images/my.png',
+            selected: '/images/my-select.png',
         },
       ]
     }
   },
   methods: {
     switchTab(clickTab) {
-      if (clickTab === this.$router.path) return;
+      if (clickTab === this.$route.path) return;
       this.$router.replace(clickTab);
     }
   },
@@ -62,11 +62,8 @@ export default {
 
 <style scoped>
 .tabbar {
-  position: fixed;
-  left: 0;
-  bottom: 0;
   width: 100%;
-  height: 1.5rem;
+  height: 1.6rem;
   background-color: rgb(255, 255, 255);
 }
 
@@ -95,6 +92,6 @@ export default {
 }
 
 .active {
-  color: red;
+  color: #b0352f;
 }
 </style>

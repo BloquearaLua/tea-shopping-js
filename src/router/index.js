@@ -1,18 +1,17 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
-import Home from "../views/Home.vue";
+import Home from "@/views/Home.vue";
 
 Vue.use(VueRouter);
 
 const routes = [
   {
     path: "/",
-    name: "home",
-    component: Home,
+    redirect: '/home',
   },
   {
     path: "/home",
-    name: "home",
+    name: "Home",
     component: Home,
   },
   {
@@ -33,6 +32,50 @@ const routes = [
     component: () =>
       import("../views/My.vue"),
   },
+  {
+    path: "/search",
+    name: "Search",
+    component: () =>
+      import("../views/Search.vue"),
+    children: [
+      {
+        path: '/',
+        name: 'SearchIndex',
+        component: () => 
+          import("../views/Search/SearchIndex.vue")
+      },
+      {
+        path: 'list',
+        name: 'SearchList',
+        component: () => 
+          import("../views/Search/SearchList.vue")
+      }
+    ]
+  },
+  {
+    path: "/details",
+    name: "Details",
+    component: () =>
+      import("../views/Details.vue"),
+  },
+  {
+    path: "/login",
+    name: "Login",
+    component: () =>
+      import("../views/Login/Login.vue"),
+  },
+  {
+    path: "/userLogin",
+    name: "UserLogin",
+    component: () =>
+      import("../views/Login/UserLogin.vue"),
+  },
+  {
+    path: "/register",
+    name: "Register",
+    component: () =>
+      import("../views/Login/Register.vue"),
+  }
 ];
 
 const router = new VueRouter({
