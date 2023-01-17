@@ -13,6 +13,7 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import TabBar from '@/components/common/TabBar.vue';
 export default {
   name: "My",

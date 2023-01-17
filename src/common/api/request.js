@@ -16,6 +16,7 @@ export default {
         Indicator.open('加载中...');
         
         return axios(options).then(value => {
+            console.log(value);
             let data = value.data.data;
             let code = value.data.code;
             return new Promise((res, rej) => {

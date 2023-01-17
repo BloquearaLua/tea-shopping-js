@@ -1,6 +1,6 @@
 <template>
     <div class="container">
-        <Header>注册</Header>
+        <Header>找回密码</Header>
         <section>
             <div class="login-tel">
                 <input type="text" v-model="userTel" placeholder="请输入手机号" />
@@ -9,10 +9,7 @@
                 <input type="text" v-model="msgCode" placeholder="请输入短信验证码" pattern="[0-9]*" />
                 <button @click="handleMsgCode" :disabled="disabled">{{ codeMsg }}</button>
             </div>
-            <div class="login-pwd">
-                <input type="password" v-model="userPwd" placeholder="请输入密码" />
-            </div>
-            <div class="register-btn" @click="handleRegister">注册</div>
+            <div class="register-btn" @click="handleNext">下一步</div>
         </section>
     </div>
 </template>
@@ -20,15 +17,14 @@
 <script>
 import { Toast } from 'mint-ui';
 import request from '@/common/api/request';
-import Header from './Header.vue';
+import Header from '../Login/Header.vue';
 
 export default {
-    name: 'Register', 
+    name: 'RecoveryIndex',
     data() {
         return {
             disabled: false,
             userTel: '',
-            userPwd: '',
             codeTime: 6,
             msgCode: '',
             codeMsg: '获取验证码',
@@ -41,34 +37,32 @@ export default {
                 msgCode: {
                     rule: /\d{4}/,
                     msg: '手机验证码输入不正确',
-                },
-                userPwd: {
-                    rule: /^\w{6,12}$/,
-                    msg: '密码不能为空，且6至12位数字、字母',
                 }
             }
         }
     },
     methods: {
-        async handleRegister() {
+        async handleNext() {
             if (!this.validate('userTel')) return;
             if (!this.validate('msgCode')) return;
-            if (!this.validate('userPwd')) return;
             
             if (this.trueCode == this.msgCode) {
                 const data = await request.$axios({
-                    url: '/api/register',
+                    url: '/api/selectUser',
                     methods: 'POST',
                     data: {
                         userTel: this.userTel,
-                        userPwd: this.userPwd
                     }
                 })
-                console.log("register:", data);
-                Toast({
-                    message: '登录成功',
-                    duration: 1000
-                })
+                console.log(data, typeof data);
+                if (!!data) {
+                    this.$router.push({
+                        name: 'RecoveryBtn',
+                        query: {
+                            userTel: this.userTel
+                        }
+                    });
+                }
             } else {
                 Toast({
                     message: '验证码错误，请重新输入',

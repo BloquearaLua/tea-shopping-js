@@ -1,19 +1,11 @@
 <template>
     <div class="container">
-        <Header/>
+        <Header>找回密码</Header>
         <section>
             <div class="login-tel">
-                <input type="text" v-model="userTel" placeholder="请输入手机号" pattern="[0-9]*"/>
+                <input type="password" v-model="userPwd" placeholder="请输入密码" />
             </div>
-            <div class="login-tel">
-                <input type="password" v-model="userPwd" placeholder="请输入密码"/>
-            </div>
-            <div class="login-btn" @click="handleLogin">登录</div>
-            <div class="tab">
-                <span @click="handleLoginType">短信登录</span>
-                <span @click="handleRecover">找回密码</span>
-                <span @click="handleRegister">快速注册</span>
-            </div>
+            <div class="register-btn" @click="handleSubmit">确认修改</div>
         </section>
     </div>
 </template>
@@ -21,19 +13,16 @@
 <script>
 import { Toast } from 'mint-ui';
 import request from '@/common/api/request';
-import Header from './Header.vue';
+import Header from '../Login/Header.vue';
 
 export default {
-    name: 'Login',
+    name: 'RecoveryIndex',
     data() {
         return {
-            userTel: '',
+            disabled: false,
             userPwd: '',
+            trueCode: '',
             rules: {
-                userTel: {
-                    rule: /^1[23456789]\d{9}$/,
-                    msg: '手机号不能为空，且为11位数字',
-                },
                 userPwd: {
                     rule: /^\w{6,12}$/,
                     msg: '密码不能为空，且6至12位数字、字母',
@@ -42,20 +31,19 @@ export default {
         }
     },
     methods: {
-        async handleLogin() {
-            console.log(this.userTel, this.userPwd);
-            if (!this.validate('userTel')) return;
+        async handleSubmit() {
             if (!this.validate('userPwd')) return;
-            const data = await request.$axios({ 
-                url: '/api/login',
+
+            const data = request.$axios({
+                url: '/api/recovery',
                 methods: 'POST',
                 data: {
-                    userTel: this.userTel,
+                    userTel: this.$route.query.userTel,
                     userPwd: this.userPwd
                 }
             })
             if (!!data) {
-                this.$router.push('/my');
+                this.$router.push('/login')
             }
         },
         validate(key) {
@@ -66,15 +54,6 @@ export default {
                 return false;
             }
             return bool;
-        },
-        handleLoginType() {
-            this.$router.push('/login');
-        },
-        handleRecover() {
-            this.$router.push('/recovery');
-        },
-        handleRegister() {
-            this.$router.push('/register')
         },
     },
     components: {
@@ -105,12 +84,21 @@ section {
         border-radius: 4px;
     }
     
-    .login-tel {
-        margin-top: 0.8rem;
-        input{
-            width: 100%;
+    .login{
+        &-tel {
+            margin-top: 0.8rem;
+            input {
+                width: 100%;
+            }
+        }
+        &-pwd {
+            margin-top: 0.28rem;
+            input {
+                width: 100%;
+            }
         }
     }
+    
 
     .login-code {
         display: flex;
@@ -130,20 +118,13 @@ section {
         }
     }
     
-    .login-btn {
+    .register-btn {
         line-height: 1.17rem;
         color: #fff;
         text-align: center;
         background-color: #b0352f;
         border-radius: 4px;
 
-    }
-
-    .tab {
-        display: flex;
-        justify-content: space-between;
-        font-size: 0.48rem;
-        font-weight: 500;
     }
 }
 

@@ -17,65 +17,72 @@ const routes = [
   {
     path: "/categories",
     name: "Categories",
-    component: () =>
-      import("../views/Categories.vue"),
+    component: () => import("../views/Categories.vue"),
   },
   {
     path: "/cart",
     name: "Cart",
-    component: () =>
-      import("../views/Cart.vue"),
+    component: () => import("../views/Cart.vue"),
   },
   {
     path: "/my",
     name: "My",
-    component: () =>
-      import("../views/My.vue"),
+    component: () => import("../views/My.vue"),
   },
   {
     path: "/search",
     name: "Search",
-    component: () =>
-      import("../views/Search.vue"),
+    component: () => import("../views/Search.vue"),
     children: [
       {
         path: '/',
         name: 'SearchIndex',
-        component: () => 
-          import("../views/Search/SearchIndex.vue")
+        component: () => import("../views/Search/SearchIndex.vue")
       },
       {
         path: 'list',
         name: 'SearchList',
-        component: () => 
-          import("../views/Search/SearchList.vue")
+        component: () => import("../views/Search/SearchList.vue")
       }
     ]
   },
   {
     path: "/details",
     name: "Details",
-    component: () =>
-      import("../views/Details.vue"),
+    component: () => import("../views/Details.vue"),
   },
   {
     path: "/login",
     name: "Login",
-    component: () =>
-      import("../views/Login/Login.vue"),
+    component: () => import("../views/Login/Login.vue"),
   },
   {
     path: "/userLogin",
     name: "UserLogin",
-    component: () =>
-      import("../views/Login/UserLogin.vue"),
+    component: () => import("../views/Login/UserLogin.vue"),
   },
   {
     path: "/register",
     name: "Register",
-    component: () =>
-      import("../views/Login/Register.vue"),
-  }
+    component: () => import("../views/Login/Register.vue"),
+  },
+  {
+    path: "/recovery",
+    name: "Recovery",
+    component: () => import("../views/Recovery/Recovery.vue"),
+    children: [
+      {
+        path: "/",
+        name: "RecoveryIndex",
+        component: () => import("../views/Recovery/RecoveryIndex.vue")
+      },
+      {
+        path: "btn",
+        name: "RecoveryBtn",
+        component: () => import("../views/Recovery/RecoveryBtn.vue"),
+      },
+    ]
+  },
 ];
 
 const router = new VueRouter({

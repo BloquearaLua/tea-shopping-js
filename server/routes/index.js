@@ -473,7 +473,7 @@ router.post('/api/login', function(req, res, next) {
           const userMsg = [...pwdResults];
           delete userMsg.pwd;
           res.send({
-            code: 200,
+            code: 0,
             success: true,
             msg: '登录成功',
             data: [...userMsg],
@@ -630,4 +630,70 @@ router.post('/api/register', function(req, res, next) {
     }
   })
 })
+
+// 查询用户是否存在
+router.post('/api/selectUser', function(req, res, next) {
+  const { userTel } = req.body;
+
+  conn.query(userSql.validateUserTel(userTel), (err, results) => {
+    if (results?.length) {
+      res.send({
+        code: 0,
+        success: true,
+        msg: '用户已存在',
+        data: []
+      })
+    } else {
+      res.send({
+        code: 404,
+        success: false,
+        msg: '用户不存在'
+      })
+    }
+  })
+})
+
+// 修改密码
+router.post('/api/recovery', function(req, res, next) {
+  const { userTel, userPwd: newPwd } = req.body;
+  console.log(userTel, newPwd);
+  conn.query(userSql.validateUserTel(userTel), (err, results) => {
+    if (results?.length) {
+      let { id, pwd: oldPwd }= results[0];
+      console.log(userSql.updatePwd({ 
+        id,
+        oldPwd,
+        newPwd
+      }));
+      conn.query(userSql.updatePwd({ 
+        id,
+        oldPwd,
+        newPwd
+      }), (err, results) => {
+        console.log(err);
+        if (!err) {
+          res.send({
+            code: 0,
+            success: true,
+            message: '更改成功',
+            data: []
+          })
+        } else {
+          res.send({
+            code: 401,
+            success: false,
+            message: '更改失败'
+          })
+        }
+      })
+    } else {
+      res.send({
+        code: 404,
+        success: false,
+        msg: '用户不存在'
+      })
+    }
+  })
+})
+
 module.exports = router;
