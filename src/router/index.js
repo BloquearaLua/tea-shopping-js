@@ -50,6 +50,9 @@ const routes = [
     path: "/details",
     name: "Details",
     component: () => import("../views/Details.vue"),
+    meta: {
+      keepAlive: true
+    }
   },
   {
     path: "/login",

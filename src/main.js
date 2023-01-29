@@ -18,6 +18,10 @@ Vue.use(FunTab);
 import { Lazyload } from 'mint-ui';
 Vue.use(Lazyload);
 
+import Vant from 'vant';
+import 'vant/lib/index.css';
+Vue.use(Vant);
+
 new Vue({
   router,
   store,

@@ -6,8 +6,17 @@ module.exports = {
         return `select * from user where tel=${tel} and pwd=${pwd}`;
     },
     insertUser(params) {
-        let { userTel, userPwd = '0' }= params;
-        return `insert into user(tel, pwd) values(${userTel}, ${userPwd + ''})`;
+        let { userTel, userPwd = '0', nickName=params.userTel }= params;
+
+        let jwt = require('jsonwebtoken');
+        // 用户信息
+        let payload = { tel: userTel };
+        // 口令
+        let secret = 'tea_mall';
+        // 生成token
+        let token = jwt.sign(payload, secret);
+        console.log(token);
+        return `insert into user(tel, pwd, imgUrl, nick_name, token) values('${userTel}', '${userPwd}', 'images/avatar.jpeg', '${nickName}', '${token}')`;
     },
     updatePwd(params) {
         let { id, oldPwd, newPwd } = params;

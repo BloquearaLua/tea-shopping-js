@@ -20,6 +20,7 @@
 
 <script>
 import { Toast } from 'mint-ui';
+import { mapMutations } from "vuex";
 import request from '@/common/api/request';
 import Header from './Header.vue';
 
@@ -42,8 +43,9 @@ export default {
         }
     },
     methods: {
+        ...mapMutations(['userLogin']),
         async handleLogin() {
-            console.log(this.userTel, this.userPwd);
+            // console.log(this.userTel, this.userPwd);
             if (!this.validate('userTel')) return;
             if (!this.validate('userPwd')) return;
             const data = await request.$axios({ 
@@ -54,7 +56,9 @@ export default {
                     userPwd: this.userPwd
                 }
             })
+            console.log('userData:', data[0]);
             if (!!data) {
+                this.userLogin(data[0]);
                 this.$router.push('/my');
             }
         },

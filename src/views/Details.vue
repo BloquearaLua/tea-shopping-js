@@ -49,7 +49,7 @@
         </section>
 
         <footer>
-            <div class="add-cart">加入购物车</div>
+            <div class="add-cart" @click="handleAddCart">加入购物车</div>
             <div>购买</div>
         </footer>
     </div>
@@ -59,6 +59,7 @@
 import BetterScroll from 'better-scroll';
 import 'swiper/dist/css/swiper.css';
 import { swiper, swiperSlide } from 'vue-awesome-swiper';
+import { Indicator, Toast } from 'mint-ui';
 import request from '@/common/api/request';
 
 export default {
@@ -98,6 +99,27 @@ export default {
             this.swiperList.unshift({imgUrl: this.currentItem.imgUrl})
             console.log(this.swiperList,'sss');
         },
+        async handleAddCart() {
+            const goodsId = this.$route.query.id;
+            // console.log(goodsId);
+            const data = await request.$axios({
+                url: '/api/addCart',
+                methods: 'POST',
+                data: {
+                    goodsId,
+                },
+                headers: {
+                    token: true,
+                }
+            })
+            if (!!data) {
+                Toast({
+                    message: '添加成功',
+                    duration: 2000,
+                })
+            }
+            console.log("details", data);
+        }
     },
     created() {
         this.id = this.$route.query.id;

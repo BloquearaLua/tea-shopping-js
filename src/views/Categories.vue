@@ -51,7 +51,7 @@ export default {
     currentIndex() {
       return this.allHeight.findIndex(
         (item, index) => 
-          this.scrollY > item && this.scrollY < this.allHeight[index+1])
+          this.scrollY >= item && this.scrollY < this.allHeight[index+1])
     }
   },
   methods: {
@@ -63,12 +63,14 @@ export default {
       this.$nextTick(() => {
         // 左侧滑动
         new BetterScroll(this.$refs.left, {
-          click: true
+          click: true,
+          bounce: false,
         });
         // 右侧滑动
         this.rightScroll = new BetterScroll(this.$refs.right, {
           click: true,
           probeType: 3,
+          bounce: false,
         });
         // 统计右侧所有板块高度值
         let height = 0;
@@ -129,12 +131,12 @@ export default {
           text-align: center;
           font-size: 0.37rem;
         }
-
-        .active {
-          color: #b0352f;
-          border-left: solid 1px #b0352f;
-        }
       }
+    }
+
+    .active {
+      color: #b0352f;
+      border-left: solid 1px #b0352f;
     }
 
     .cate-r {

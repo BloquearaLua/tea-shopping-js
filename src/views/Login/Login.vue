@@ -20,6 +20,7 @@
 
 <script>
 import { Toast } from 'mint-ui';
+import { mapMutations } from "vuex";
 import request from '@/common/api/request';
 import Header from './Header.vue';
 
@@ -46,6 +47,7 @@ export default {
         }
     },
     methods: {
+        ...mapMutations(['userLogin']),
         handleUserLogin() {
             this.$router.push('/userLogin');
         },
@@ -57,13 +59,15 @@ export default {
             console.log(this.trueCode, this.msgCode);
             if (this.trueCode == this.msgCode) {
                 const data = await request.$axios({
-                url: 'api/addUser',
-                methods: 'POST',
-                data: {
-                    userTel: this.userTel
-                }
-            })
-            console.log("addUser:", data);
+                    url: 'api/addUser',
+                    methods: 'POST',
+                    data: {
+                        userTel: this.userTel
+                    }
+                })
+                console.log("addUser:", data[0]);
+                this.userLogin(data[0]);
+                this.$router.push('/my');
                 Toast({
                     message: '登录成功',
                     duration: 1000

@@ -1,7 +1,9 @@
 const express = require('express');
 const conn = require('../db/sql');
 const userSql = require('../db/userSql');
-var QcloudSms = require("qcloudsms_js");
+const goodsSql = require('../db/goodsSql');
+const QcloudSms = require("qcloudsms_js");
+const jwt = require('jsonwebtoken');
 
 var router = express.Router();
 
@@ -391,79 +393,91 @@ router.get('/api/goods/list', function(req, res, next) {
 
 // 查询商品
 router.get('/api/goods/:id', function (req, res, next) {
-  const shoplist = [
-    {
-      id: 1,
-      name: '龙井1號铁罐250g',
-      price: 299,
-      imgUrl: '/images/goods1.jpg'
-    },
-    {
-      id: 2,
-      name: '龙井2號铁罐250g',
-      price: 399,
-      imgUrl: '/images/goods2.jpg'
-    },
-    {
-      id: 3,
-      name: '龙井3號铁罐250g',
-      price: 199,
-      imgUrl: '/images/goods3.jpg'
-    },
-    {
-      id: 4,
-      name: '龙井4號铁罐250g',
-      price: 189,
-      imgUrl: '/images/goods4.jpg'
-    },
-    {
-      id: 5,
-      name: '建盏茶具套装 红色芝麻毫 12件套',
-      price: 299,
-      imgUrl: './images/like.jpeg'
-    },
-    {
-      id: 6,
-      name: '建盏茶具套装 红色芝麻毫 12件套',
-      price: 299,
-      imgUrl: './images/like.jpeg'
-    },
-    {
-      id: 7,
-      name: '建盏茶具套装 红色芝麻毫 12件套',
-      price: 299,
-      imgUrl: './images/like.jpeg'
-    },
-    {
-      id: 8,
-      name: '建盏茶具套装 红色芝麻毫 12件套',
-      price: 299,
-      imgUrl: './images/like.jpeg'
-    },
-    {
-      id: 9,
-      name: '建盏茶具套装 红色芝麻毫 12件套',
-      price: 299,
-      imgUrl: './images/like.jpeg'
-    },
-    {
-      id: 10,
-      name: '建盏茶具套装 红色芝麻毫 12件套',
-      price: 299,
-      imgUrl: './images/like.jpeg'
-    },
-  ]
-  const id = +req.params.id;
-  res.send({
-    code: 0,
-    data: shoplist.filter(item => item.id === id),
+  // const shoplist = [
+  //   {
+  //     id: 1,
+  //     name: '龙井1號铁罐250g',
+  //     price: 299,
+  //     imgUrl: '/images/goods1.jpg'
+  //   },
+  //   {
+  //     id: 2,
+  //     name: '龙井2號铁罐250g',
+  //     price: 399,
+  //     imgUrl: '/images/goods2.jpg'
+  //   },
+  //   {
+  //     id: 3,
+  //     name: '龙井3號铁罐250g',
+  //     price: 199,
+  //     imgUrl: '/images/goods3.jpg'
+  //   },
+  //   {
+  //     id: 4,
+  //     name: '龙井4號铁罐250g',
+  //     price: 189,
+  //     imgUrl: '/images/goods4.jpg'
+  //   },
+  //   {
+  //     id: 5,
+  //     name: '建盏茶具套装 红色芝麻毫 12件套',
+  //     price: 299,
+  //     imgUrl: './images/like.jpeg'
+  //   },
+  //   {
+  //     id: 6,
+  //     name: '建盏茶具套装 红色芝麻毫 12件套',
+  //     price: 299,
+  //     imgUrl: './images/like.jpeg'
+  //   },
+  //   {
+  //     id: 7,
+  //     name: '建盏茶具套装 红色芝麻毫 12件套',
+  //     price: 299,
+  //     imgUrl: './images/like.jpeg'
+  //   },
+  //   {
+  //     id: 8,
+  //     name: '建盏茶具套装 红色芝麻毫 12件套',
+  //     price: 299,
+  //     imgUrl: './images/like.jpeg'
+  //   },
+  //   {
+  //     id: 9,
+  //     name: '建盏茶具套装 红色芝麻毫 12件套',
+  //     price: 299,
+  //     imgUrl: './images/like.jpeg'
+  //   },
+  //   {
+  //     id: 10,
+  //     name: '建盏茶具套装 红色芝麻毫 12件套',
+  //     price: 299,
+  //     imgUrl: './images/like.jpeg'
+  //   },
+  // ]
+  // const id = +req.params.id;
+  // res.send({
+  //   code: 0,
+  //   data: shoplist.filter(item => item.id === id),
+  // })
+  const { id } = +req.params;
+  conn.query(goodsSql.getGoodsList(), (err, results) => {
+    if (!err) {
+      res.send({
+        code: 0,
+        success: true,
+        data: [...results],
+      })
+    }
   })
 })
 
 // 登录接口
 router.post('/api/login', function(req, res, next) {
   const { userTel, userPwd } = req.body;
+  console.log(conn);
   conn.query(userSql.validateUserTel(userTel), (err, results) => {
+    console.log(results);
     if (results?.length) {
       console.log(results);
       conn.query(userSql.validateUserPwd(userTel, userPwd), (err, pwdResults) => 
@@ -476,7 +490,10 @@ router.post('/api/login', function(req, res, next) {
             code: 0,
             success: true,
             msg: '登录成功',
-            data: [...userMsg],
+            data: [{
+              ...userMsg[0],
+              token: 'fdsjfsdkjskl'
+            }],
           })
         } else {
           res.send({
@@ -542,7 +559,7 @@ router.post('/api/addUser', function(req, res, next) {
         code: 0,
         success: true,
         message: '登录成功',
-        data: results[0],
+        data: results,
       })
     } else {
       // 不存在用户，新增一个用户
@@ -556,7 +573,9 @@ router.post('/api/addUser', function(req, res, next) {
                 code: 0,
                 success: true,
                 message: '登录成功',
-                data: userResults[0],
+                data: [{
+                  ...userResults[0],
+                }],
               })
             }
           });
@@ -567,37 +586,37 @@ router.post('/api/addUser', function(req, res, next) {
 })
 
 // 登录接口
-router.post('/api/addUser', function(req, res, next) {
-  const { userTel } = req.body;
-  conn.query(userSql.validateUserTel(userTel), (err, results) => {
-    if (results?.length) {
-      res.send({
-        code: 0,
-        success: true,
-        message: '登录成功',
-        data: results[0],
-      })
-    } else {
-      // 不存在用户，新增一个用户
-      conn.query(userSql.insertUser({ userTel, }), (err, results) => {
-        console.log("insertUser",err, results);
-        if (!err) {
-          conn.query(userSql.validateUserTel(userTel), (err, userResults) => {
-            console.log('queryUser', err, userResults[0]);
-            if (userResults?.length) {
-              res.send({
-                code: 0,
-                success: true,
-                message: '登录成功',
-                data: userResults[0],
-              })
-            }
-          });
-        }
-      })
-    }
-  })
-})
+// router.post('/api/addUser', function(req, res, next) {
+//   const { userTel } = req.body;
+//   conn.query(userSql.validateUserTel(userTel), (err, results) => {
+//     if (results?.length) {
+//       res.send({
+//         code: 0,
+//         success: true,
+//         message: '登录成功',
+//         data: results[0],
+//       })
+//     } else {
+//       // 不存在用户，新增一个用户
+//       conn.query(userSql.insertUser({ userTel, }), (err, results) => {
+//         console.log("insertUser",err, results);
+//         if (!err) {
+//           conn.query(userSql.validateUserTel(userTel), (err, userResults) => {
+//             console.log('queryUser', err, userResults[0]);
+//             if (userResults?.length) {
+//               res.send({
+//                 code: 0,
+//                 success: true,
+//                 message: '登录成功',
+//                 data: userResults[0],
+//               })
+//             }
+//           });
+//         }
+//       })
+//     }
+//   })
+// })
 
 // 注册接口
 router.post('/api/register', function(req, res, next) {
@@ -691,6 +710,72 @@ router.post('/api/recovery', function(req, res, next) {
         code: 404,
         success: false,
         msg: '用户不存在'
+      })
+    }
+  })
+})
+
+// 加入购物车
+router.post('/api/addCart', function(req, res, next) {
+  const { goodsId } = req.body;
+  const { token } = req.headers;
+  const tokenObj = jwt.decode(token);
+  console.log('userTEl', goodsId);
+
+  conn.query(userSql.validateUserTel(tokenObj.tel), (err, results) => {
+    if (!err) {
+      console.log('查询用户手机成功');
+      const uid = results[0].id;
+      conn.query(goodsSql.getGoods({ id: goodsId }), (err, results) => {
+        if (!err) {
+          console.log('查询商品成功');
+          const goodsId = results[0].id;
+          const goodsName = results[0].name;
+          const goodsPrice = results[0].price;
+          const goodsNum = results[0].num;
+          const goodsImgUrl = results[0].imgUrl;
+          conn.query(goodsSql.insertCart({
+            uid,
+            goodsId,
+            goodsName,
+            goodsPrice,
+            goodsNum,
+            goodsImgUrl,
+          }), (err) => {
+            if (!err) {
+              console.log('插入成功');
+              res.send({
+                code: 0,
+                success: true,
+                message: '添加成功',
+                data: []
+              });
+            }
+          })
+        }
+      })
+    }
+  })
+
+})
+
+// 购物车列表
+router.post('/api/selectCart', function (req, res, next) {
+  const { token } = req.headers;
+  const { tel } = jwt.decode(token);
+  conn.query(userSql.validateUserTel(tel), (err, results) => {
+    if (!err) {
+      const uid = results[0].id;
+      conn.query(goodsSql.getCartList({ uid }), (err, results) => {
+        if (!err) {
+          res.send({
+            code: 0,
+            success: true,
+            data: [...results],
+          })
+        } else {
+          console.log(err);
+        }
       })
     }
   })
