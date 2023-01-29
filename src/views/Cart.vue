@@ -3,28 +3,30 @@
     <header>
       <i class="iconfont icon-fanhui" @click="handleReturn"></i>
       <span>购物车</span>
-      <span>编辑</span>
+      <span
+        @click="isEdit = !isEdit" 
+        v-text="isEdit ? '完成' : '编辑'"
+        >
+      </span>
     </header>
     <section v-if="cartList.length">
       <div class="cart-title">
-        <van-checkbox v-model="checkAll"></van-checkbox>
+        <van-checkbox @click="handleCheckAll" :value="isCheckedAll"></van-checkbox>
         <span>商品</span>
       </div>
       <ul>
         <li v-for="item in cartList" :key="item.id">
           <div class="check">
-            <van-checkbox v-model="checkAll"></van-checkbox>
+            <van-checkbox @click="checkOne(item.id)" v-model="item.checked"></van-checkbox>
           </div>
-          <h2>
-            <img :src="item.goods_imgUrl" alt="">
-          </h2>
+          <img :src="item.goods_imgUrl" alt="">
           <div class="goods">
             <div class="goods-title">
               <span>{{ item.goods_name }}</span>
-              <i class="iconfont icon-lajitong"></i>
+              <i class="iconfont icon-lajitong" @click="handleDeleteItem(item.id)"></i>
             </div>
             <div class="goods-price">￥{{ item.goods_price }}</div>
-            <van-stepper :value="item.goods_num" integar></van-stepper>
+            <van-stepper @change="handleStepperChange($event, item)" v-model="item.goods_num" integar></van-stepper>
           </div>
         </li>
       </ul>
@@ -37,19 +39,21 @@
     </section>
     <footer v-if="cartList.length">
       <div class="radio">
-        <van-checkbox v-model="checkAll"></van-checkbox>
+        <van-checkbox @click="handleCheckAll" :value="isCheckedAll"></van-checkbox>
       </div>
-      <div class="total">
+      <div class="total" >
         <div>共有 
-          <span class="total-active">{{ 1 }}</span>
+          <span class="total-active">{{ total.num }}</span>
           件商品
         </div>
-        <div>
+        <div v-if="!isEdit">
           <span>总计：</span>
-          <span class="total-active">￥128.00 + 0 茶币</span>
+          <span class="total-active">￥{{ total.price }} + 0 茶币</span>
         </div>
       </div>
-      <div class="order">去结算</div>
+
+      <div class="order" v-if="!isEdit">去结算</div>
+      <div class="order" @click="handleDeleteItem" v-else>删除</div>
     </footer>
   </div>
 </template>
@@ -57,17 +61,18 @@
 <script>
 
 import request from '@/common/api/request';
-import { mapMutations, mapState } from 'vuex';
+import { Toast } from 'vant';
+import { mapActions, mapGetters, mapMutations, mapState } from 'vuex';
 
 export default {
   name: "Cart",
   data() {
     return {
-      checkAll: true,
-      value: 2,
+      isEdit: false,
     }
   },
   computed: {
+    ...mapGetters(['isCheckedAll', 'total']),
     ...mapState({
       cartList: state => state.cart.cartList,
     })
@@ -76,20 +81,35 @@ export default {
     this.getCartList();
   },
   methods: {
-    ...mapMutations(['handleCartList']),
+    ...mapMutations(['handleCartList', 'checkOne']),
+    ...mapActions(['handleCheckAll', 'handleDeleteItem']),
     handleReturn() {
       this.$router.push('/home');
     },
     async getCartList() {
-      let data = await request.$axios({
+      let cartRes = await request.$axios({
         url: '/api/selectCart',
         methods: 'POST',
         headers: {
           token: true,
         }
       })
-      this.handleCartList(data);
+      cartRes.forEach(item => {
+        item['checked'] = true
+      });
+      this.handleCartList(cartRes);
     },
+    async handleStepperChange(value, item) {
+      console.log(value);
+      const data = await request.$axios({
+        url: '/api/cart/updateNum',
+        methods: 'POST',
+        data: {
+          id: item.id,
+          num: value,
+        }
+      });
+    }
   },
   components: {
   },
@@ -136,7 +156,7 @@ section {
 
     li {
       display: flex;
-      justify-content: space-between;
+      // justify-content: space-between;
       align-items: center;
       padding: 0.16rem 0.53rem;
       margin: 0.21rem 0;
@@ -153,26 +173,28 @@ section {
 
       .goods {
         display: flex;
+        width: 100%;
         flex-direction: column;
         padding-left: 0.4rem;
         font-size: 0.32rem;
 
-        .goods-title {
+        &-title {
           display: flex;
+          justify-content: space-between;
 
           i {
             font-size: 0.59rem;
           }
         }
 
-        .goods-price {
+        &-price {
           padding: 0.08rem 0;
           color: #b0352f;
         }
 
         ::v-deep .van-stepper{
           text-align: right;
-      }
+        }
       }
     }
   }

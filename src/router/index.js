@@ -86,6 +86,23 @@ const routes = [
       },
     ]
   },
+  {
+    path: "/path",
+    name: "Path",
+    component: () => import("../views/Path/Path.vue"),
+    children: [
+      {
+        path: "/",
+        name: "PathList",
+        component: () => import("../views/Path/PathList.vue")
+      },
+      {
+        path: "details",
+        name: "PathDetails",
+        component: () => import("../views/Path/PathDetails.vue")
+      },
+    ]
+  },
 ];
 
 const router = new VueRouter({

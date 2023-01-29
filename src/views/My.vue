@@ -10,7 +10,7 @@
     </header>
     <section>
       <ul>
-        <li>地址管理</li>
+        <li @click="handlePathManage">地址管理</li>
         <li v-if="loginStatus" @click="logout">退出账号</li>
       </ul>
     </section>
@@ -27,6 +27,9 @@ export default {
     ...mapMutations(['logout']),
     handleLogin() {
       this.$router.push('/login');
+    },
+    handlePathManage() {
+      this.$router.push('/path');
     }
   },
   computed: {

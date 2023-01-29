@@ -4,6 +4,8 @@ const userSql = require('../db/userSql');
 const goodsSql = require('../db/goodsSql');
 const QcloudSms = require("qcloudsms_js");
 const jwt = require('jsonwebtoken');
+const addressSql = require('../db/addressSql');
+const { updateDefault } = require('../db/addressSql');
 
 var router = express.Router();
 
@@ -98,26 +100,26 @@ router.get('/api/index_list/0/data/1', function (req, res, next) {
           data: [
             {
               id: 1,
-              name: '龙井1號铁罐250g',
-              price: 299,
+              name: '赛事茶',
+              price: 238,
               imgUrl: './images/goods1.jpg'
             },
             {
               id: 2,
-              name: '龙井2號铁罐250g',
-              price: 399,
+              name: '茶具',
+              price: 26,
               imgUrl: './images/goods2.jpg'
             },
             {
               id: 3,
-              name: '龙井3號铁罐250g',
-              price: 199,
+              name: '绿茶',
+              price: 118,
               imgUrl: './images/goods3.jpg'
             },
             {
               id: 4,
-              name: '龙井4號铁罐250g',
-              price: 189,
+              name: '明前春茶',
+              price: 98,
               imgUrl: './images/goods4.jpg'
             },
             {
@@ -461,7 +463,7 @@ router.get('/api/goods/:id', function (req, res, next) {
   //   data: shoplist.filter(item => item.id === id),
   // })
   const { id } = +req.params;
-  conn.query(goodsSql.getGoodsList(), (err, results) => {
+  conn.query(goodsSql.getGoods({ id }), (err, results) => {
     if (!err) {
       res.send({
         code: 0,
@@ -724,32 +726,55 @@ router.post('/api/addCart', function(req, res, next) {
 
   conn.query(userSql.validateUserTel(tokenObj.tel), (err, results) => {
     if (!err) {
-      console.log('查询用户手机成功');
+      // console.log('查询用户手机成功');
       const uid = results[0].id;
       conn.query(goodsSql.getGoods({ id: goodsId }), (err, results) => {
         if (!err) {
-          console.log('查询商品成功');
+          // console.log('查询商品成功');
           const goodsId = results[0].id;
           const goodsName = results[0].name;
           const goodsPrice = results[0].price;
           const goodsNum = results[0].num;
           const goodsImgUrl = results[0].imgUrl;
-          conn.query(goodsSql.insertCart({
-            uid,
-            goodsId,
-            goodsName,
-            goodsPrice,
-            goodsNum,
-            goodsImgUrl,
-          }), (err) => {
-            if (!err) {
-              console.log('插入成功');
-              res.send({
-                code: 0,
-                success: true,
-                message: '添加成功',
-                data: []
-              });
+
+          conn.query(goodsSql.checkCartItem({ uid, goodsId }), (err, results) => {
+            if (results.length) {
+              const { id } = results[0];
+              console.log("??", id);
+              conn.query(goodsSql.updateCartNum({ 
+                id,
+                num: parseInt(goodsNum) + 1
+              }), (err, results) => {
+                if (!err) {
+                  res.send({
+                    code: 0,
+                    success: true,
+                    message: '添加成功',
+                  })
+                } else {
+                  console.log("update:", err);
+                }
+              })
+            } else {
+              conn.query(goodsSql.insertCart({
+                uid,
+                goodsId,
+                goodsName,
+                goodsPrice,
+                goodsNum,
+                goodsImgUrl,
+              }), (err) => {
+                if (!err) {
+                  res.send({
+                    code: 0,
+                    success: true,
+                    message: '添加成功',
+                    data: []
+                  });
+                } else {
+                  console.log("insert", err);
+                }
+              })
             }
           })
         }
@@ -775,6 +800,93 @@ router.post('/api/selectCart', function (req, res, next) {
           })
         } else {
           console.log(err);
+        }
+      })
+    }
+  })
+})
+
+// 删除购物车
+router.post('/api/cart/delete', function (req, res, next) {
+  const { ids } = req.body;
+  console.log("delete,ids:", ids);
+  conn.query(goodsSql.deleteCart({ ids }), (err, results) => {
+    if (!err) {
+      res.send({
+        code: 0,
+        success: true,
+        message: '删除成功',
+        data: []
+      })
+    } else {
+      console.log(err);
+      res.send({
+        code: 400,
+        success: false,
+        message: '删除失败',
+      })
+    }
+  })
+})
+
+// 修改购物车
+router.post('/api/cart/updateNum', (req, res, next) => {
+  const { id, num } = req.body;
+  conn.query(goodsSql.updateCartNum({ id, num }), (err, results) => {
+    if (!err) {
+      res.send({
+        code: 0,
+        success: true,
+        message: '更新成功'
+      })
+    }
+  })
+})
+
+// 添加地址
+router.post('/api/address/add', (req, res, next) => {
+  const { token } = req.headers;
+  const { tel: loginTel } = jwt.decode(token);
+  const { name, tel, province, city, county, country, addressDetail, isDefault, areaCode } = req.body;
+  conn.query(userSql.validateUserTel(loginTel), (err, results) => {
+    if (!err) {
+      const uid = results[0].id;
+      if (!!isDefault) { // 为默认
+        conn.query(updateDefault({ uid }));
+      }
+      conn.query(addressSql.insertAddress({
+        uid, name, tel, province, city, county, country, addressDetail, isDefault, areaCode
+        }), (err) => {
+        if (!err) {
+          res.send({
+            code: 0,
+            success: true,
+            message: '添加成功',
+            data: []
+          })
+        }
+      });
+    }
+  })
+
+
+})
+
+// 获取地址
+router.post('/api/address', (req, res, next) => {
+  const { token } = req.headers;
+  const { tel } = jwt.decode(token);
+
+  conn.query(userSql.validateUserTel(tel), (err, results) => {
+    if (!err) {
+      const uid = results[0].id;
+      conn.query(addressSql.selectAddress({ uid }), (err, results) => {
+        if (!err) {
+          res.send({
+            code: 0,
+            success: true,
+            data: results
+          })
         }
       })
     }
