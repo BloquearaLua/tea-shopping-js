@@ -13,7 +13,7 @@ export default {
     },
     mutations: {
         [USER_LOGIN](state, user) {
-            console.log('mutations:', state, user);
+            // console.log('mutations:', state, user);
             state.loginStatus = true;
             state.token = user.token;
             state.userInfo = user;

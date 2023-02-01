@@ -52,7 +52,7 @@
         </div>
       </div>
 
-      <div class="order" v-if="!isEdit">去结算</div>
+      <div class="order" @click="handleCount" v-if="!isEdit">去结算</div>
       <div class="order" @click="handleDeleteItem" v-else>删除</div>
     </footer>
   </div>
@@ -75,13 +75,14 @@ export default {
     ...mapGetters(['isCheckedAll', 'total']),
     ...mapState({
       cartList: state => state.cart.cartList,
-    })
+      checkedList: state => state.cart.checkedList,
+    }),
   },
   created() {
     this.getCartList();
   },
   methods: {
-    ...mapMutations(['handleCartList', 'checkOne']),
+    ...mapMutations(['handleCartList', 'checkOne', 'initOrder']),
     ...mapActions(['handleCheckAll', 'handleDeleteItem']),
     handleReturn() {
       this.$router.push('/home');
@@ -100,7 +101,6 @@ export default {
       this.handleCartList(cartRes);
     },
     async handleStepperChange(value, item) {
-      console.log(value);
       const data = await request.$axios({
         url: '/api/cart/updateNum',
         methods: 'POST',
@@ -109,6 +109,36 @@ export default {
           num: value,
         }
       });
+    },
+    async handleCount() {
+      console.log("this.checkedList", this.checkedList);
+      if (this.checkedList.length) {
+        const data = await request.$axios({
+          url: '/api/order/add',
+          methods: 'POST',
+          headers: {
+            token: true,
+          },
+          data: {
+            goodsGroup: this.cartList.filter(item => this.checkedList.indexOf(item.id) > -1)
+          }
+        })
+
+        console.log("order", data);
+        if (data[0].order_status === 1) {
+          this.initOrder(data);
+          this.$router.push({
+            name: 'Order',
+            query: {
+              selectedIds: JSON.stringify(this.checkedList)
+            }
+          });
+        }
+        
+      } else {
+        Toast('请至少选择一件商品');
+      }
+      
     }
   },
   components: {

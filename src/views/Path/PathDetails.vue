@@ -1,25 +1,38 @@
 <template>
-    <van-address-edit
-        :area-list="areaList"
-        show-delete
-        show-set-default
-        show-search-result
-        :search-result="searchResult"
-        :area-columns-placeholder="['请选择', '请选择', '请选择']"
-        @save="handleSavePath"
-        @delete="handleDeletePath"
-        @change-detail="handleChangeDetail"
+    <div class="path-detail">
+        <Header>
+            <span v-show="type==='add'">新增地址</span>
+            <span v-show="type==='edit'">编辑地址</span>
+        </Header>
+        <van-address-edit
+            v-if="type==='add'"
+            :area-list="areaList"
+            show-set-default
+            @save="handleSavePath"
         />
+        <van-address-edit
+            v-else
+            :area-list="areaList"
+            :address-info="addressInfo"
+            show-delete
+            show-set-default
+            @save="handleSavePath"
+            @delete="handleDeletePath"
+        />
+    </div>
 </template>
 
 <script>
 import request from '@/common/api/request';
 import { Toast } from 'vant';
+import Header from "@/views/Login/Header.vue";
 
 export default {
     name: 'PathDetails',
     data() {
     return {
+            type: 'add',
+            addressInfo: {},
             areaList: {
                 province_list: {
                     110000: '北京市',
@@ -35,47 +48,59 @@ export default {
                     // ....
                 },
             },
-            searchResult: [],
         };
     },
     methods: {
         async handleSavePath(content) {
             console.log(content);
+            let url = this.type === 'add' ? '/api/address/add' : '/api/address/edit';
+            let { id } = this.addressInfo;
             const data = await request.$axios({
-                url: '/api/address/add',
+                url,
                 methods: 'POST',
                 data: {
                     ...content,
-                    isDefault: +content.isDefault
+                    id,
+                    isDefault: +content.isDefault,
                 },
                 headers: {
                     token: true,
                 }
             });
             if (!!data) {
-                Toast('添加成功');
+                this.type === 'add' ? Toast('添加成功') : Toast('编辑成功');
                 this.$router.push('/path');
             }
             console.log('add address:', data);
         },
-        handleDeletePath() {
-            Toast('delete');
-        },
-        handleChangeDetail(val) {
-            if (val) {
-                this.searchResult = [
-                {
-                    name: '黄龙万科中心',
-                    address: '杭州市西湖区',
+        async handleDeletePath(content) {
+            console.log(content,'ff');
+            const data = request.$axios({
+                url: '/api/address/delete',
+                methods: 'POST',
+                data: {
+                    id: content.id
                 },
-                ];
-            } else {
-                this.searchResult = [];
+                headers: {
+                    token: true
+                }
+            })
+            if (!!data) {
+                Toast('删除成功');
+                this.$router.push('/path')
             }
+            
         },
     },
+    created() {
+        this.type = this.$route.params.type;
+        if (this.type === 'edit') {
+            this.addressInfo = JSON.parse(this.$route.params.data);
+            
+        }
+    },
     components: {
-        
+        Header
     }
 }
 </script>

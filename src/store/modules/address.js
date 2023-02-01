@@ -4,7 +4,9 @@ export default {
         list: [],
     },
     getters: {
-
+        defaultPath(state) {
+            return state.list.filter(item => !!item.is_default);
+        }
     },
     mutations: {
         [INIT_ADDRESS](state, addressList) {

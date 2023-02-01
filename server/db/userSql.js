@@ -14,7 +14,9 @@ module.exports = {
         // 口令
         let secret = 'tea_mall';
         // 生成token
-        let token = jwt.sign(payload, secret);
+        let token = jwt.sign(payload, secret, {
+            expiresIn: 60
+        });
         console.log(token);
         return `insert into user(tel, pwd, imgUrl, nick_name, token) values('${userTel}', '${userPwd}', 'images/avatar.jpeg', '${nickName}', '${token}')`;
     },

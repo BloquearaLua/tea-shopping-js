@@ -5,22 +5,22 @@
         </Header>
         <section>
             <ul v-if="addressList.length">
-                <li v-for="address in addressList" :key="address.id">
+                <li v-for="address in addressList" :key="address.id" @click="handleGoDetails('edit', address)">
                     <div>
                         <span>{{address.name}}</span>
                         <span>{{address.tel}}</span>
                     </div>
                     <div>
-                        <span class="active" v-if="+address.isDefault">[默认]</span>
+                        <span class="active" v-if="+address.is_default">[默认]</span>
                         <span>{{address.province}}</span>
                         <span>{{address.city}}</span>
                         <span>{{address.county}}</span>
-                        <span>{{address.addressDetail}}</span>
+                        <span>{{address.address_detail}}</span>
                     </div>
                 </li>
             </ul>
             <div v-else class="">暂无地址</div>
-            <div class="add-path" @click="handleGoDetails">添加地址</div>
+            <div class="add-path" @click="handleGoDetails('add')">添加地址</div>
         </section>
 
         
@@ -31,6 +31,7 @@
 import request from "@/common/api/request";
 import Header from "@/views/Login/Header.vue";
 import { mapMutations, mapState } from "vuex";
+import bus from '@/common/bus';
 
 export default {
     name: 'PathList',
@@ -39,9 +40,37 @@ export default {
     }, 
     methods: {
         ...mapMutations(['initAddress']),
-        handleGoDetails() {
-            this.$router.push('/path/details');
-        }
+        handleGoDetails(type, item) {
+            const selected_type = this.$route.params.type === 'select';
+            if (selected_type) {
+                // bus.$emit('changeAddress', item);
+                // this.$router.back();
+                console.log("???", item);
+                this.$router.replace({
+                    name: 'Order',
+                    params: {
+                        type: "back",
+                        addressInfo: JSON.stringify(item)
+                    }
+                })
+                return;
+            }
+
+            let info = item 
+            ? {
+                ...item,
+                addressDetail: item.address_detail,
+                areaCode: item.area_code,
+                isDefault: !!item.is_default,
+            } : null;
+            this.$router.push({
+                name: 'PathDetails',
+                params: {
+                    type,
+                    data: JSON.stringify(info)
+                }
+            });
+        },
     },
     async created() {
         const data = await request.$axios({

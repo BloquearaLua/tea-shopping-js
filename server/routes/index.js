@@ -6,6 +6,11 @@ const QcloudSms = require("qcloudsms_js");
 const jwt = require('jsonwebtoken');
 const addressSql = require('../db/addressSql');
 const { updateDefault } = require('../db/addressSql');
+const orderSql = require('../db/orderSql');
+
+const alipaySdk = require('../db/alipay');
+const { default: axios } = require('axios');
+const AlipayFormData = require('alipay-sdk/lib/form').default;
 
 var router = express.Router();
 
@@ -587,7 +592,7 @@ router.post('/api/addUser', function(req, res, next) {
   })
 })
 
-// 登录接口
+// 注册接口
 // router.post('/api/addUser', function(req, res, next) {
 //   const { userTel } = req.body;
 //   conn.query(userSql.validateUserTel(userTel), (err, results) => {
@@ -856,7 +861,7 @@ router.post('/api/address/add', (req, res, next) => {
       }
       conn.query(addressSql.insertAddress({
         uid, name, tel, province, city, county, country, addressDetail, isDefault, areaCode
-        }), (err) => {
+      }), (err) => {
         if (!err) {
           res.send({
             code: 0,
@@ -868,8 +873,54 @@ router.post('/api/address/add', (req, res, next) => {
       });
     }
   })
+})
 
+// 编辑地址
+router.post('/api/address/edit', (req, res, next) => {
+  const { token } = req.headers;
+  const { tel: loginTel } = jwt.decode(token);
+  const { id, name, tel, province, city, county, country, addressDetail, isDefault, areaCode } = req.body;
+  conn.query(userSql.validateUserTel(loginTel), (err, results) => {
+    if (!err) {
+      const uid = results[0].id;
+      if (!!isDefault) { // 为默认
+        conn.query(updateDefault({ uid }));
+      }
+      conn.query(addressSql.updateAddress({
+        id, name, tel, province, city, county, country, addressDetail, isDefault, areaCode
+      }), (err) => {
+        if (!err) {
+          res.send({
+            code: 0,
+            success: true,
+            message: '编辑成功',
+            data: []
+          })
+        }
+      });
+    }
+  })
+})
 
+// 删除地址
+router.post('/api/address/delete', (req, res, next) => {
+  const { token } = req.headers;
+  const { tel: loginTel } = jwt.decode(token);
+  const { id } = req.body;
+  conn.query(userSql.validateUserTel(loginTel), (err, results) => {
+    if (!err) {
+      conn.query(addressSql.deleteAddress({ id }), (err) => {
+        if (!err) {
+          res.send({
+            code: 0,
+            success: true,
+            message: '删除成功',
+            data: []
+          })
+        }
+      });
+    }
+  })
 })
 
 // 获取地址
@@ -893,4 +944,249 @@ router.post('/api/address', (req, res, next) => {
   })
 })
 
+// 生成订单
+router.post('/api/order/add', (req, res, next) => {
+  try {
+    const { token } = req.headers;
+    const { tel } = jwt.decode(token);
+
+    const { goodsGroup } = req.body; 
+    let goodsNameArr = [],
+        goodsNum = 0,
+        goodsPrice = 0;
+    goodsGroup.forEach(item => {
+      goodsNameArr.push(item.goods_name);
+      goodsNum += parseInt(item.goods_num);
+      goodsPrice += parseInt(item.goods_price) * parseInt(item.goods_num);
+    });
+    let goodsName = goodsNameArr.join(',');
+
+    conn.query(userSql.validateUserTel(tel), (err, results) => {
+      if (!err) {
+        const uid = results[0].id;
+        const orderID = generateOrderID();
+        conn.query(orderSql.insertOrder({
+          uid, orderID, goodsName, goodsNum, goodsPrice
+        }), (err, results) => {
+          if (err) console.log('orderInsert', err);
+          if (!err) {
+            conn.query(orderSql.selectOrderByOrderID({ orderID }), (err, results) => {
+              if (err) console.log('orderSelect', err);
+              if (!err) {
+                res.send({
+                  code: 0,
+                  data: results
+                })
+              }
+            })
+          }
+        })
+
+      }
+    })
+  } catch (error) {
+    console.log(error);
+  }
+
+  function generateOrderID() {
+    return Date.now().toString() + Math.floor(Math.random() * (999999 - 100000) + 100000);
+  }
+})
+
+// 提交订单
+router.post('/api/order/submit', (req, res, next) => {
+  try {
+    const { token } = req.headers;
+    const { tel } = jwt.decode(token);
+    
+    const { orderId, selectedIds } = req.body;
+    conn.query(userSql.validateUserTel(tel), (err, results) => {
+      if (!err) {
+        const uid = results[0].id;
+        conn.query(orderSql.selectOrderByOrderID({ orderID:  orderId}), (err, results) => {
+          console.log("select", err);
+          if (!err) {
+            conn.query(orderSql.updateStatus({
+              orderStatus: 2,
+              uid,
+              orderId,
+            }), (err, results) => {
+              if(!err) {
+                conn.query(goodsSql.deleteCart({ ids: selectedIds }), (err, results) => {
+                  if (!err) {
+                    res.send({
+                      code: 0,
+                      success: true,
+                      message: '更改成功',
+                      data: []
+                    })
+                  }
+                })
+              }
+            })
+          }
+        })  
+      }
+    })
+  } catch (error) {
+    console.log("???", error);
+  }
+})
+
+//发起支付
+router.post('/api/order/pay', (req, res, next) => {
+  try {
+    const { orderId, name, price } = req.body;
+    const { token } = req.headers;
+    const { tel } = jwt.decode(token);
+
+    const formData = new AlipayFormData();
+    // 调用 setMethod 并传入 get，会返回可跳转到支付页面的url
+    formData.setMethod('get');
+    // 支付时信息
+    formData.addField('bizContent', {
+      outTradeNo: orderId,
+      productCode: 'FAST_INSTANT_TRADE_PAY',
+      totalAmount: price,
+      subject: name,
+    });
+    // 支付成功失败跳转链接
+    formData.addField('returnUrl', 'http://localhost:8080/pay');
+    alipaySdk.exec('alipay.trade.page.pay', {}, { formData: formData }).then(resp => {
+      res.send({
+        code: 0,
+        success: true,
+        msg: '支付成功',
+        data: {
+          redirectUrl: resp
+        }
+      })
+    })
+  } catch (error) {
+    console.log("err", error);
+  }
+
+})
+
+
+// 支付状态
+router.post('/api/payment/result', (req, res, next) => {
+  const { token } = req.headers;
+  const { tel } = jwt.decode(token);
+
+  const { trade_no, out_trade_no } = req.body;
+  const formData = new AlipayFormData();
+    // 调用 setMethod 并传入 get，会返回可跳转到支付页面的url
+    formData.setMethod('get');
+    // 支付时信息
+    formData.addField('bizContent', {
+      trade_no,
+      out_trade_no
+    });
+    // 支付成功失败跳转链接
+    formData.addField('returnUrl', 'http://localhost:8080/pay');
+    alipaySdk.exec('alipay.trade.query', {}, { formData: formData }).then(resp => {
+      axios({
+        url: resp,
+        method: 'GET',
+      }).then(data => {
+        const resCode = data.data.alipay_trade_query_response;
+        if (resCode === '10000') {
+          switch(  responseCode.trade_status  ){
+            case 'WAIT_BUYER_PAY':
+              res.send({
+                data: {
+                  code: 1001,
+                  success: false,
+                  message: '支付宝有交易记录，没付款'
+                }
+              })
+              break;
+            case 'TRADE_CLOSED':
+              res.send({
+                data: {
+                  code: 1002,
+                  success: false,
+                  message: '交易关闭'
+                }
+              })
+              break;
+            case 'TRADE_FINISHED':
+              connection.query(userSql.validateUserTel(tel), (err,results) => {
+                //用户id
+                let uid = results[0].id;
+                connection.query(selectOrderByOrderID(out_trade_no), (err,result) => {
+                  let id = result[0].id;
+                  //订单的状态修改掉2==》3
+                  connection.query(updateStatus({
+                    uid,
+                    orderId: out_trade_no,
+                    orderStatus: 3
+                  }), () => {
+                    res.send({
+                      data:{
+                        code: 0,
+                        success: true,
+                        message: '交易完成',
+                        data: []
+                      }
+                    })
+                  })
+                })
+              })
+              break;
+            case 'TRADE_SUCCESS':
+              connection.query(userSql.validateUserTel(tel), (err,results) => {
+                //用户id
+                let uid = results[0].id;
+                connection.query(selectOrderByOrderID(out_trade_no), (err,result) => {
+                  let id = result[0].id;
+                  //订单的状态修改掉2==》3
+                  connection.query(updateStatus({
+                    uid,
+                    orderId: out_trade_no,
+                    orderStatus: 3
+                  }), () => {
+                    res.send({
+                      data:{
+                        code: 0,
+                        success: true,
+                        message: '交易完成',
+                        data: []
+                      }
+                    })
+                  })
+                })
+              })
+            break;
+          }
+        } else if (resCode === '40004') {
+          res.send({
+            code: 404,
+            success: false,
+            message: '交易不存在'
+          })
+        }
+      }).catch(err => {
+        res.send({
+          code: 500,
+          success: false,
+          message: '交易失败'
+        })
+      })
+    })
+})
+
+// 获取订单
+router.post('/api/order', (req, res, next) => {
+  const { token } = req.headers;
+  const { tel } = jwt.decode(token);
+  const { orderId } = req.body;
+
+  conn.query(userSql.validateUserTel(tel), (err, results) => {
+    if (!err) {
+      conn.query(orderSql.selectOrderByOrderID())
+    }
+  })
+})
 module.exports = router;

@@ -1,6 +1,6 @@
 import request from "@/common/api/request";
 import { Dialog, Toast } from "vant";
-import { CART_LIST, CHECK_ALL, CHECK_NONE, CHECK_ONE } from "./mutation-type";
+import { CART_LIST, CHECK_ALL, CHECK_NONE, CHECK_ONE, INIT_SELECTED_LIST, INIT_TOTAL } from "./mutation-type";
 export default {
     state: {
         cartList: [],
@@ -46,12 +46,15 @@ export default {
         [CHECK_ONE](state, checkedId) {
             const includeIndex = state.checkedList.indexOf(checkedId);
             if (includeIndex > -1) {
-                state.checkedList.splice(includeIndex);
+                state.checkedList.splice(includeIndex, 1);
             } else {
                 state.checkedList.push(checkedId);
             }
-            
-        }
+            // console.log("--------------------------checkedList:---", includeIndex, state.checkedList);
+        },
+        [INIT_SELECTED_LIST](state, selectedIds) {
+            state.checkedList = selectedIds;
+        },
     },
     actions: {
         handleCheckAll({ commit, getters }) {

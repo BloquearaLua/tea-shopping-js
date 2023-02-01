@@ -2,8 +2,20 @@ import Vue from "vue";
 import VueRouter from "vue-router";
 import Home from "@/views/Home.vue";
 
-Vue.use(VueRouter);
+const originalPush = VueRouter.prototype.push;
+const originalReplace = VueRouter.prototype.replace;
+// push
+VueRouter.prototype.push = function push (location, onResolve, onReject) {
+  if (onResolve || onReject) return originalPush.call(this, location, onResolve, onReject)
+  return originalPush.call(this, location).catch(err => err)
+}
+// replace
+VueRouter.prototype.replace = function push (location, onResolve, onReject) {
+  if (onResolve || onReject) return originalReplace.call(this, location, onResolve, onReject)
+  return originalReplace.call(this, location).catch(err => err)
+}
 
+Vue.use(VueRouter);
 const routes = [
   {
     path: "/",
@@ -103,6 +115,19 @@ const routes = [
       },
     ]
   },
+  {
+    path: "/order",
+    name: "Order",
+    component: () => import("../views/Order.vue"),
+    // meta: {
+    //   keepAlive: true,
+    // }
+  },
+  {
+    path: "/pay",
+    name: "Pay",
+    component: () => import("../views/Pay.vue"),
+  },
 ];
 
 const router = new VueRouter({
@@ -110,5 +135,17 @@ const router = new VueRouter({
   base: process.env.BASE_URL,
   routes,
 });
+
+router.beforeEach((to, from, next) => {
+  const nextRoute = ['Path', 'PathList', 'Cart', 'PathDetails', 'Order', 'Pay'];
+  const userInfo = JSON.parse(localStorage.getItem('teaUserInfo'));
+  if (nextRoute.indexOf(to.name) > -1) {
+    if (!userInfo) {
+      router.push('/login');
+    }
+  }
+  // console.log(to, from, next);
+  next();
+})
 
 export default router;
