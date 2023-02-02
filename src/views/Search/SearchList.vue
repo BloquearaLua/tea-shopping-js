@@ -1,7 +1,7 @@
 <template>
     <div class="search-list">
         <div class="headers">
-            <Header/>
+            <Header></Header>
             <ul>
                 <li
                     v-for="(item,index) in searchList.data"

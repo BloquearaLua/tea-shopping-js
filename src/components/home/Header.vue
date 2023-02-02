@@ -1,14 +1,8 @@
 <template>
     <header>
-        <!-- <h1>
-            <img src="@/assets/images/logo.png" alt="logo">
-        </h1> -->
         <div class="search" @click="handleSearch">
-            <i class="iconfont icon-fangdajing"></i>
             <span>猜您喜欢的...</span>
-        </div>
-        <div class="kefu">
-            <i class="iconfont icon-kefu"></i>
+            
         </div>
     </header>
 </template>
@@ -23,6 +17,9 @@ export default {
         }
     }, 
     methods: {
+        focusFun() {
+            this.$router.push('/search')
+        },
         handleSearch() {
             this.$router.push('/search')
         }
@@ -33,46 +30,37 @@ export default {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 header {
+    box-sizing: border-box;
     display: flex;
     justify-content: space-around;
     align-items: center;
-    width: 100%;
+    width: 100vw;
     height: 1.6rem;
-    background-color: #b0352f;
-}
+    padding: .3125rem;
+    background: linear-gradient(to right bottom, #C6CFC7, #d3d3d3, #C6CFC7);
 
-header h1 {
-    width: 2.27rem;
-    height: 1.33rem;
-}
+    .search {
+        position: relative;
+        display: flex;
+        align-items: center;
+        width: 100%;
+        height: 1rem;
+        background-color: #fff;
+        border: solid 1px #a8a8a8;
+        border-radius: 1.25rem;
+        color: #a8a8a8;
+        
+        span {
+            margin-left: .625rem;
+            font-size: .37rem;
+        }
 
-header h1 img {
-    width: 100%;
-    height: 100%;
-}
-
-.search {
-    display: flex;
-    align-items: center;
-    width: 6.56rem;
-    height: 0.8rem;
-    background-color: #fff;
-    border-radius: 12px;
-    color: #ccc;
-}
-
-.search i {
-    padding: 0 0.16rem;
-}
-
-.search span {
-    font-size: 0.37rem;
-}
-
-.kefu i {
-    font-size: 0.96rem;
-    color: #fff;
+        .nut-icon-search {
+            position: absolute;
+            right: .3125rem;
+        }
+    }
 }
 </style>

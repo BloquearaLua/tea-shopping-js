@@ -22,6 +22,11 @@ import Vant from 'vant';
 import 'vant/lib/index.css';
 Vue.use(Vant);
 
+import NutUI from '@nutui/nutui';
+import '@nutui/nutui/dist/nutui.css';
+
+NutUI.install(Vue);
+
 new Vue({
   router,
   store,
