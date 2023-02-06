@@ -1,10 +1,11 @@
 <template>
     <div class="search-index">
-        <Header />
+        <Header></Header>
         <section>
             <div class="search-history">
                 <h2>
-                    <i class="iconfont icon-shijian"></i>
+                    <!-- <i class="iconfont icon-shijian"></i> -->
+                    <van-icon name="clock-o" color="#1989fa"/>
                     <span>历史搜索</span>
                     <span @click="handleDeleteHistory">清空历史记录</span>
                 </h2>
@@ -15,12 +16,12 @@
                         :key="index"
                         @click="goSearchList(item)"
                         >
-                        {{ item }}
+                        <van-tag plain color="#6091E8" type="primary" size="large">{{ item }}</van-tag>
                     </li>
                 </ul>
             </div>
         </section>
-        <TabBar/>
+        <!-- <TabBar/> -->
     </div>
 </template>
 
@@ -68,54 +69,49 @@ export default {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .search-index {
     display: flex;
     flex-direction: column;
     width: 100vw;
     height: 100vh;
     overflow: hidden;
-}
 
-section {
-    flex: 1;
-    overflow: hidden;
-    background-color: #f5f5f5;
-    overflow: hidden;
-}
+    section {
+        flex: 1;
+        overflow: hidden;
+        background-color: #f5f5f5;
+        overflow: hidden;
 
-.search-history {
-    padding: 0.53rem;
-}
+        .search-history {
+            padding: 0.53rem;
+            color: #656D78;
 
-.search-history h2{
-    position: relative;
-    font-weight: 400;
-    font-size: 0.48rem;
-}
+            h2{
+                position: relative;
+                font-weight: 400;
+                font-size: 0.42rem;
 
-.search-history h2 span:last-child{
-    position: absolute;
-    right: 0;
-}
+                span:last-child{
+                    position: absolute;
+                    right: 0;
+                }
 
-.search-history h2 i {
-    padding-right: 0.08rem;
-    color: #b0352f;
-    font-size: 0.48rem;
-}
+                i {
+                    padding-right: 0.08rem;
+                }
+            }
 
-.search-history ul {
-    display: flex;
-    flex-wrap: wrap;
-    padding: 0.53rem 0;
-}
+            ul {
+                display: flex;
+                flex-wrap: wrap;
+                padding: 0.53rem 0;
 
-.search-history ul li {
-    margin: 0 0.32rem 0.27rem 0;
-    padding: 0.08rem 0.16rem;
-    font-size: 0.38rem;
-    border: solid 1px #ccc;
+                li {
+                    margin: 0 0.32rem 0.27rem 0;
+                }
+            }
+        }
+    }
 }
-
 </style>

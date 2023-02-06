@@ -1,8 +1,42 @@
 <template>
     <div class="container">
-        <Header>注册</Header>
+        <Header title="注册" back="/login"></Header>
         <section>
-            <div class="login-tel">
+            <van-form @submit="handleRegister">
+                <van-field
+                    v-model="userTel"
+                    type="tel"
+                    label="手机号"
+                    name="手机号"
+                    placeholder="请输入手机号"
+                    :rules="[{ required: true }, { pattern: /^1[23456789]\d{9}$/, message: '手机格式不正确'}]"
+                 />
+                <van-field
+                    v-model="msgCode"
+                    center
+                    clearable
+                    name="短信验证码"
+                    label="短信验证码"
+                    placeholder="请输入短信验证码"
+                    :rules="[{ required: true }, { pattern: /\d{4}/, message: '验证码格式不正确'}]"
+                    >
+                    <template #button>
+                        <van-button size="small" plain type="info" @click="handleMsgCode">{{ codeMsg }}</van-button>
+                    </template>
+                </van-field>
+                <van-field
+                    v-model="userPwd"
+                    center
+                    clearable
+                    type="password"
+                    name="密码"
+                    label="密码"
+                    placeholder="请输入密码"
+                    :rules="[{ required: true }, { pattern: /^\w{6,12}$/, message: '密码格式不正确'}]"
+                />
+                <van-button class="login-btn" type="info" native-type="submit">注册</van-button>
+            </van-form>
+            <!-- <div class="login-tel">
                 <input type="text" v-model="userTel" placeholder="请输入手机号" />
             </div>
             <div class="login-code">
@@ -12,7 +46,7 @@
             <div class="login-pwd">
                 <input type="password" v-model="userPwd" placeholder="请输入密码" />
             </div>
-            <div class="register-btn" @click="handleRegister">注册</div>
+            <div class="register-btn" @click="handleRegister">注册</div> -->
         </section>
     </div>
 </template>
@@ -118,69 +152,73 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background-color: #f5f5f5;
-
-    div {
-        margin: 0.27rem 0;
-        width: 8.9rem;
-        height: 1.17rem;
-    }
-
-    input {
-        box-sizing: border-box;
-        padding: 0 0.27rem;
-        line-height: 1.17rem;
-        background-color: #fff;
-        border: solid 1px #ccc;
-        border-radius: 4px;
-    }
-    
-    .login{
-        &-tel {
-            margin-top: 0.8rem;
-            input {
-                width: 100%;
-            }
-        }
-        &-pwd {
-            margin-top: 0.28rem;
-            input {
-                width: 100%;
-            }
-        }
-    }
-    
-
-    .login-code {
-        display: flex;
-
-        input {
-            flex: 1;
-        }
-
-        button {
-            margin-left: 0.27rem;
-            padding: 0 0.53rem;
-            line-height: 1.17rem;
-            background-color: #b0352f;
-            color: #fff;
-            border: 0;
-            border-radius: 4px;
-        }
-    }
-    
-    .register-btn {
-        line-height: 1.17rem;
-        color: #fff;
-        text-align: center;
-        background-color: #b0352f;
-        border-radius: 4px;
-
-    }
+.login-btn {
+    margin: 0.6rem 5% 0.1rem;
+    width: 90%;
 }
+// section {
+//     display: flex;
+//     flex-direction: column;
+//     align-items: center;
+//     background-color: #f5f5f5;
+
+//     div {
+//         margin: 0.27rem 0;
+//         width: 8.9rem;
+//         height: 1.17rem;
+//     }
+
+//     input {
+//         box-sizing: border-box;
+//         padding: 0 0.27rem;
+//         line-height: 1.17rem;
+//         background-color: #fff;
+//         border: solid 1px #ccc;
+//         border-radius: 4px;
+//     }
+    
+//     .login{
+//         &-tel {
+//             margin-top: 0.8rem;
+//             input {
+//                 width: 100%;
+//             }
+//         }
+//         &-pwd {
+//             margin-top: 0.28rem;
+//             input {
+//                 width: 100%;
+//             }
+//         }
+//     }
+    
+
+//     .login-code {
+//         display: flex;
+
+//         input {
+//             flex: 1;
+//         }
+
+//         button {
+//             margin-left: 0.27rem;
+//             padding: 0 0.53rem;
+//             line-height: 1.17rem;
+//             background-color: #b0352f;
+//             color: #fff;
+//             border: 0;
+//             border-radius: 4px;
+//         }
+//     }
+    
+//     .register-btn {
+//         line-height: 1.17rem;
+//         color: #fff;
+//         text-align: center;
+//         background-color: #b0352f;
+//         border-radius: 4px;
+
+//     }
+// }
 
 </style>

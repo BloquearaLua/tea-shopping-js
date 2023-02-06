@@ -1,13 +1,13 @@
 <template>
   <div class="tabbar">
-    <van-tabbar route>
+    <van-tabbar route placeholder>
       <van-tabbar-item
         v-for="tab in tabList"
         :key="tab.id"
         replace
         :to="tab.path"
         :icon="tab.icon"
-        :badge="tab.badge ? tab.badgeNum : null"
+        :badge="tab.badge ? cartLength : null"
       >
         首页
       </van-tabbar-item>
@@ -17,8 +17,10 @@
 
 <script>
 import '@/assets/js/flexible';
+import { mapState } from 'vuex';
 export default {
   name: "TabBar",
+  props: ['toolbar'],
   data() {
     return {
       tabList: [
@@ -37,7 +39,6 @@ export default {
           path: '/cart',
           icon: 'cart-o',
           badge: true,
-          badgeNum: 5,
         },
         {
           id: 4,
@@ -46,6 +47,11 @@ export default {
         },
       ]
     }
+  },
+  computed: {
+    ...mapState({
+      cartLength: state => state.cart.cartList.length
+    })
   },
   methods: {
     switchTab(clickTab) {

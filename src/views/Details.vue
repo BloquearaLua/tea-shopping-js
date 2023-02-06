@@ -1,56 +1,59 @@
 <template>
-    <div class="details">
+    <div class="details container">
         <header>
             <div class="header-icons" v-show="isShow">
-                <i class="iconfont icon-fanhui" @click="handleReturn"></i>
-                <i class="iconfont icon-kefu"></i>
+                <van-icon name="arrow-left" @click="handleReturn" size="0.6rem"/>
+                <van-icon name="service-o" size="0.6rem" />
             </div>
             <div class="header-bar" v-show="!isShow" :style="styleOption">
-                <i class="iconfont icon-fanhui" @click="handleReturn"></i>
+                <van-icon name="arrow-left" @click="handleReturn" size="0.6rem"/>
                 <div>
                     <span>商品详情</span>
                     <span>商品评价</span>
                 </div>
-                <i class="iconfont icon-kefu"></i>
+                <van-icon name="service-o" size="0.6rem" />
             </div>
         </header>
         
         <section ref="wrapper">
             <div>
                 <div class="swiper-main">
-                    <swiper :options="swiperOptions">
-                        <swiper-slide v-for="item in swiperList" :key="item.id">
-                            <img :src="item.imgUrl" alt="">
-                        </swiper-slide>
-                    </swiper>
-                    <div class="swiper-pagination"></div>
+                    <van-swipe :autoplay="3000">
+                        <van-swipe-item v-for="item in swiperList" :key="item.id">
+                            <img v-lazy="item.imgUrl" width="100%"/>
+                        </van-swipe-item>
+                    </van-swipe>
                 </div>
 
                 <div class="goods-name">
-                    <h1>{{ currentItem.name }}</h1>
-                    <div>性价首选，茶感十足、鲜醇耐泡的大众口粮茶</div>
+                    <h1>{{ currentItem.goods_name }}</h1>
+                    <div>{{ currentItem.goods_content }}</div>
                 </div>
                 <div class="goods-price">
-                    <div class="pre-price">
-                        <span>￥</span>
-                        <del>288</del>
-                    </div>
-                    <div class="now-price">
-                        <span>价格</span>
-                        <b>{{ currentItem.price }}</b>
-                    </div>
+                    <span class="pre-price">
+                        <span>到手￥</span>
+                        <b>{{ currentItem.goods_price }}</b>
+                    </span>
+                    <span class="now-price">
+                        <span>原价￥</span>
+                        <del>{{ currentItem.goods_price }}</del>
+                    </span>
                 </div>
                 
                 <div>
-					<img :src="swiperList[0].imgUrl" alt="">
-					<img :src="swiperList[0].imgUrl" alt="">
+					<img v-lazy="swiperList[0].imgUrl" width="100%" alt="">
+					<img v-lazy="swiperList[0].imgUrl" width="100%" alt="">
 				</div>
             </div>
         </section>
 
         <footer>
-            <div class="add-cart" @click="handleAddCart">加入购物车</div>
-            <div>购买</div>
+            <van-goods-action>
+                <van-goods-action-icon icon="chat-o" text="客服" />
+                <van-goods-action-icon icon="shop-o" text="店铺" />
+                <van-goods-action-button color="#A6BEE7" type="warning" @click="handleAddCart" text="加入购物车" />
+                <van-goods-action-button color="#6091E8" type="danger" @click="handleBuy" text="立即购买" />
+            </van-goods-action>
         </footer>
     </div>
 </template>
@@ -59,8 +62,9 @@
 import BetterScroll from 'better-scroll';
 import 'swiper/dist/css/swiper.css';
 import { swiper, swiperSlide } from 'vue-awesome-swiper';
-import { Indicator, Toast } from 'mint-ui';
 import request from '@/common/api/request';
+import { Toast } from 'vant';
+import { mapMutations, mapState } from 'vuex';
 
 export default {
     name: "Cart",
@@ -71,14 +75,6 @@ export default {
             sectionScroll: '',
             styleOption: {},
             currentItem: {},
-            swiperOptions: {
-                autoplay: 3000,
-                speed: 1000,
-                pagination: {
-                    el: '.swiper-pagination',
-                    type: 'fraction',
-                }
-            },
             swiperList: [
                 { imgUrl: 'images/goods-list1.jpeg'},
                 { imgUrl: 'images/goods-list1.jpeg'},
@@ -87,21 +83,57 @@ export default {
             ]
         }
     },
+    computed: {
+        ...mapState({
+            selectedIds: state => state.cart.checkedList
+        })
+    },
     methods: {
+        ...mapMutations(['initOrder', 'initSelectedList']),
         handleReturn() {
             this.$router.back();
+        },
+        async handleBuy() {
+            const data = await request.$axios({
+                url: '/api/order/add',
+                methods: 'POST',
+                headers: {
+                    token: true,
+                },
+                data: {
+                    goodsGroup: [{ ...this.currentItem, }]
+                }
+            })
+            console.log("order", data);
+            this.initOrder(data);
+            this.initSelectedList([this.currentItem.id]);
+            console.log("selectedids", this.selectedIds);
+            if (data[0].order_status === 1) {
+                this.$router.push({
+                    name: 'Order',
+                    query: {
+                        selectedIds: JSON.stringify([this.currentItem.id])
+                    }
+                });
+            }
         },
         async getData() {
             const res = await request.$axios({
                 url: `/api/goods/${this.id}`
             });
             this.currentItem = res[0];
-            this.swiperList.unshift({imgUrl: this.currentItem.imgUrl})
+            this.swiperList.unshift({imgUrl: this.currentItem.goods_imgUrl})
             console.log(this.swiperList,'sss');
+            this.$nextTick(() => {
+            new BetterScroll(this.$refs.wrapper, {
+                    movable: true,
+                    zoom: true,
+                }) 
+            })
         },
         async handleAddCart() {
             const goodsId = this.$route.query.id;
-            // console.log(goodsId);
+            console.log("goodsId", goodsId);
             const data = await request.$axios({
                 url: '/api/addCart',
                 methods: 'POST',
@@ -160,12 +192,6 @@ export default {
 
 <style lang="scss" scoped>
 .details {
-    display: flex;
-	flex-direction: column;
-	width: 100vw;
-	height: 100vh;
-	overflow: hidden;
-
     header {
         position: fixed;
         width: 100%;
@@ -249,42 +275,54 @@ export default {
         }
 
         .now-price {
+            margin-left: 0.1rem;
             color: #999;
             font-size: 0.37rem;
         }
     }
 
     footer {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        position: fixed;
-        left: 0;
-        bottom: 0;
         width: 100%;
-        height: 1.31rem;
-        border-top: solid 1px #ccc;
-        background-color: #fff;
+        height: 50px;
+        // display: flex;
+        // justify-content: center;
+        // align-items: center;
+        // position: fixed;
+        // left: 0;
+        // bottom: 0;
+        // width: 100%;
+        // height: 1.31rem;
+        // border-top: solid 1px #ccc;
+        // background-color: #fff;
 
-        div {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 50%;
-            height: 100%;
-            font-size: 0.43rem;
-            background-color: #b0352f;
-            color: #fff;
+        // div {
+        //     display: flex;
+        //     justify-content: center;
+        //     align-items: center;
+        //     width: 50%;
+        //     height: 100%;
+        //     font-size: 0.43rem;
+        //     background-color: #b0352f;
+        //     color: #fff;
             
-            &.add-cart {
-                background-color: #ff9500;
-            }
-        }
+        //     &.add-cart {
+        //         background-color: #ff9500;
+        //     }
+        // }
     }
 }
 
 .swiper-main {
     position: relative;
+
+    .custom-indicator {
+        position: absolute;
+        right: 5px;
+        bottom: 5px;
+        padding: 2px 5px;
+        font-size: 12px;
+        background: rgba(0, 0, 0, 0.1);
+    }
 }
 
 .swiper-main,

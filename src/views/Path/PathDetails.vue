@@ -1,9 +1,6 @@
 <template>
     <div class="path-detail">
-        <Header>
-            <span v-show="type==='add'">新增地址</span>
-            <span v-show="type==='edit'">编辑地址</span>
-        </Header>
+        <Header :title="type === 'add' ? '新增地址' : '编辑地址'" back="/path"></Header>
         <van-address-edit
             v-if="type==='add'"
             :area-list="areaList"
@@ -113,7 +110,8 @@ export default {
 }
 
 ::v-deep .van-button--danger {
-    background-color: #b0352f;
+    border: solid 1px #6091E8;
+    background-color: #6091E8;
 }
 
 </style>

@@ -1,52 +1,36 @@
 <template>
-    <div class="search-list">
-        <div class="headers">
-            <Header/>
-            <ul>
-                <li
-                    v-for="(item,index) in searchList.data"
-                    :key="index"
-                    @click="handleChangeOperation(index)"
-                >
-                    <div 
-                        :class="searchList.currentIndex === index ? 'active' : ''"
-                    >
-                        {{ item.name }}
-                    </div>
-                    <div class="search-filter" v-if="index !== 0">
-                        <i
-                            class="iconfont icon-arrow_up_fat"
-                            :class="item.status === 1 ? 'active' : ''"
-                            ></i>
-                        <i
-                            class="iconfont icon-arrow_down_fat"
-                            :class="item.status === 2 ? 'active' : ''"
-                            ></i>
-                    </div>
-                </li>
-            </ul>
+    <div class="search-list container">
+        <div class="header">
+            <Header></Header>
+            <van-dropdown-menu active-color="#1989fa">
+                <van-dropdown-item @change="handleFilterChange" v-model="filterList.com[0].default" :options="filterList.com" />
+                <van-dropdown-item @change="handleFilterChange" v-model="filterList.goods_price[0].default" :options="filterList.goods_price" />
+                <van-dropdown-item @change="handleFilterChange" v-model="filterList.goods_sales[0].default" :options="filterList.goods_sales" />
+            </van-dropdown-menu>
         </div>
-        <section>
-            <ul v-if="goodsList.length">
-                <li v-for="item in goodsList" :key="item.id">
-                    <img v-lazy="item.imgUrl" alt="">
-                    <h3>{{ item.name }}</h3>
-                    <div  class="price">
-                        <div>
+        <section ref="wrapper">
+            <van-grid v-if="goodsList.length" :column-num="2">
+                <van-grid-item v-for="item in goodsList" :key="item.id" :to="{ path: '/details', query: { id: item.id }}">
+                    <van-image :src="item.goods_imgUrl" width="100%">
+                        <template v-slot:error>加载失败</template>
+                    </van-image>
+                    <p class="desc">{{ item.goods_content.slice(0,9) }}</p>
+                    <div class="options">
+                        <div class="price">
                             <span>￥</span>
-                            <b>{{ item.price }}</b>
+                            <b>{{ item.goods_price }}</b>
                         </div>
-                        <div>立即购买</div>
+                        <div class="cart">加入购物车</div>
                     </div>
-                </li>
-            </ul>
-            <div v-else class="info">暂时相关数据...</div>
+                </van-grid-item>
+            </van-grid>
+            <van-empty v-else image="https://img01.yzcdn.cn/vant/custom-empty-image.png" description="暂无相关产品" />
         </section>
-        <TabBar/>
     </div>
 </template>
 
 <script>
+import BetterScroll from 'better-scroll';
 import request from '@/common/api/request';
 
 import TabBar from '@/components/common/TabBar.vue';
@@ -55,24 +39,36 @@ export default {
     name: 'SearchList',
     data() {
         return {
-            goodsList: [],
-            searchList: {
-                currentIndex: 0,
-                data: [
-                    { name: '综合', key: 'combination' },
-                    { name: '价格', status: 0, key: 'price' },
-                    { name: '销量', status: 0, key: 'num'  },
+            filterList: {
+                'com': [ { text: '综合', value: 'default', default: 'default' }, ],
+                'goods_price': [ 
+                    { text: '价格', value: 'default', default: 'default' },
+                    { text: '价格升序', value: 'asc' },
+                    { text: '价格降序', value: 'desc' },
+                ],
+                'goods_sales': [
+                    { text: '销量', value: 'default', default: 'default' },
+                    { text: '销量升序', value: 'asc' },
+                    { text: '销量降序', value: 'desc' },
                 ]
-            }
+            },
+            goodsList: [],
         }
     },
     created() {
+        
+    },
+    mounted() {
         this.getData();
     },
     methods: {
-        getData() {
-            console.log(this.orderBy);
-            request.$axios({ 
+        handleFilterChange(value) {
+            console.log('filter', value, this.filterList);
+            this.getData()
+        },
+        async getData() {
+            console.log('order', this.orderBy);
+            const data = await request.$axios({ 
                 url: `/api/goods/shopList`,
                 params: {
                     keyword: this.$route.query.keyword,
@@ -80,10 +76,20 @@ export default {
                         ...this.orderBy
                     }
                 }
-            }).then(res => {
-                console.log(res);
-                this.goodsList = res;
             })
+            if (!!data) {
+                console.log("/goods", data);
+                this.goodsList = data;
+            }
+
+            this.$nextTick(() => {
+                this.scroll = new BetterScroll(this.$refs.wrapper, {
+                    click: true,
+                    movable: true,
+                });
+                console.log("scroll---", this.scroll);
+            })
+            
         },
         handleChangeOperation(index) {
             this.searchList.data.forEach((item, itemIndex) => {
@@ -99,11 +105,15 @@ export default {
     },
     computed: {
         orderBy() {
-            const obj = this.searchList.data[this.searchList.currentIndex];
-            const val = obj.status === 1 ? 'asc' : 'desc';
-            return {
-                [obj.key]: val
-            }
+            const keys = Object.keys(this.filterList);
+            const order = {};
+            keys.forEach(item => {
+                const result = this.filterList[item][0].default;
+                if (result !== 'default') {
+                    order[item] = result;
+                }
+            })
+            return order;
         }
     },
     watch: {
@@ -118,111 +128,50 @@ export default {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .search-list {
-    display: flex;
-    flex-direction: column;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-}
-
-.headers ul {
-    display: flex;
-    justify-content: space-around;
-    padding: 0.33rem 0;
-}
-
-.headers ul li {
-    display: flex;
-    align-items: center;
-}
-
-.headers ul li > div {
-    padding: 0 0.08rem;
-}
-
-.headers ul li .search-filter {
-    display: flex;
-    flex-direction: column;
-}
-
-section {
-    flex: 1;
-    overflow: hidden;
     background-color: #f5f5f5;
-}
 
-section ul {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-}
+    .header {
+        width: 100vw;
+        height: 98px;
+    }
 
-section ul li {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    width: 50%;
-    padding: 0.27rem;
-    box-sizing: border-box;
-}
+    section {
+        flex: 1;
+        overflow: hidden;
+        padding: .325rem 0;
 
-section ul li h3 {
-    width: 100%;
-    font-size: 0.37rem;
-    font-weight: 400;
-    color: rgba(0, 0, 0, 0.7);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
+        .desc {
+            margin-top: .22rem;
+            width: 3.8rem;
+            font-size: 0.42rem;
+            text-align: left;
+            overflow: hidden;
+            white-space: nowrap;
+            color: #656D78;
+        }
 
-section ul li img {
-    width: 4.53rem;
-    height: 4.53rem;
-}
+        .options {
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            font-size: 0.48rem;
 
-section ul li .price {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.27rem 0;
-    width: 100%;
-    font-style: 14px;
-}
+            .price {
+                color: #ee0a24;
+            }
 
-section ul li .price div:first-child span {
-    font-size: 0.32ren;
-    color: #b0352f;
-}
-
-section ul li .price div:first-child b {
-    color: #b0352f;
-    font-size: 0.43rem;
-}
-
-section ul li .price div:last-child {
-    padding: 0.08rem 0.16rem;
-    color: #fff;
-    background-color: #b0352f;
-    border-radius: 0.16rem;
-    font-size: 0.48rem;
-    cursor: pointer;
-}
-
-.active {
-    color: #b0352f;
-}
-
-.info {
-    padding-top: 0.32rem;
-    text-align: center;
-}
-
-section ul li img[lazy=loading] {
-  width: 40px;
-  height: 300px;
-  margin: auto;
+            .cart {
+                padding: 2px 8px;
+                border-radius: 3px;
+                font-size: 0.32rem;
+                cursor: pointer;
+                color: #fff;
+                background: linear-gradient(to right, #ff6034, #ee0a24);
+            }
+        }
+    }
 }
 </style>

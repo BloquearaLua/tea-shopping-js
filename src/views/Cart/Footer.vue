@@ -1,12 +1,15 @@
 <template>
-    <van-submit-bar
-        :price="parseInt(total.price)*100"
-        :button-text="isEdit ? '删除' : '去结算'"
-        @submit="handleSubmit"
-        button-color="linear-gradient(to right, #6BB3FB, #86C1FC)"
-    >
-        <van-checkbox  @click="handleCheckAll" :value="isCheckedAll">全选</van-checkbox>
-    </van-submit-bar>
+    <footer>
+        <van-submit-bar
+            :price="parseInt(total.price)*100"
+            :button-text="isEdit ? '删除' : '去结算'"
+            @submit="handleSubmit"
+            button-color="linear-gradient(to right, #6BB3FB, #86C1FC)"
+        >
+            <van-checkbox  @click="handleCheckAll" :value="isCheckedAll">全选</van-checkbox>
+        </van-submit-bar>
+        <div v-if="placeholder" class="toolbar"></div>
+    </footer>
 </template>
 
 <script>
@@ -15,7 +18,7 @@ import request from '@/common/api/request';
 
 export default {
     name: 'CartFooter',
-    props: ['isEdit'],
+    props: ['isEdit', 'placeholder'],
     data() {
         return {
             checked: true
@@ -69,7 +72,12 @@ export default {
 .van-submit-bar {
     width: 100vw;
     position: fixed;
-    bottom: 50px;
+    bottom: 49px;
     background-color: #fff;
+}
+
+.toolbar {
+    width: 100vw;
+    height: 50px;
 }
 </style>

@@ -1,31 +1,23 @@
 <template>
   <div class="cart">
-    <!-- <header>
-      <span>购物车</span>
-      <span
-        @click="isEdit = !isEdit" 
-        v-text="isEdit ? '完成' : '编辑'"
-        >
-      </span>
+    <header>
+      <van-nav-bar
+        fixed
+        placeholder
+        title="购物车"
+        :right-text="isEdit ? '完成' : '编辑'"
+        @click-left="handleLeftClick"
+        @click-right="isEdit = !isEdit"
+      >
+        <template #left>
+          <van-icon name="search" size="18" />
+        </template>
+      </van-nav-bar>
     </header>
-    <div class="toolbar-header"></div> -->
-    <van-nav-bar 
-      title="购物车"
-      :right-text="isEdit ? '完成' : '编辑'"
-      @click-left="handleLeftClick"
-      @click-right="isEdit = !isEdit"
-    >
-      <template #left>
-        <van-icon name="search" size="18" />
-      </template>
-    </van-nav-bar>
+
     <section v-if="cartList.length" ref="wrapper">
-      <!-- <div class="cart-title">
-        <van-checkbox @click="handleCheckAll" :value="isCheckedAll"></van-checkbox>
-        <span>商品</span>
-      </div> -->
       <ul>
-        <li v-for="item in cartList" :key="item.id">
+        <li v-for="item in cartList" :key="item.id" @click="handleGoDetail(item.goods_id)">
           <div class="check">
             <van-checkbox @click="checkOne(item.id)" v-model="item.checked"></van-checkbox>
           </div>
@@ -42,31 +34,16 @@
       </ul>
     </section>
     <section v-else>
-      暂无记录，请先去
-      <router-link to="/home">
-        首页
-      </router-link>逛逛
+      <van-empty
+        description="购物车还没有物品，快去逛逛 ~"
+        image="https://img01.yzcdn.cn/vant/custom-empty-image.png"
+      >
+        <van-button round color="#6091E8" class="bottom-button" @click="handleGoHome">
+          去首页
+        </van-button>
+      </van-empty>
     </section>
-    <div class="toolbar"></div>
-    <!-- <footer v-if="cartList.length">
-      <div class="radio">
-        <van-checkbox @click="handleCheckAll" :value="isCheckedAll"></van-checkbox>
-      </div>
-      <div class="total" >
-        <div>共有 
-          <span class="total-active">{{ total.num }}</span>
-          件商品
-        </div>
-        <div v-if="!isEdit">
-          <span>总计：</span>
-          <span class="total-active">￥{{ total.price }} + 0 茶币</span>
-        </div>
-      </div>
-
-      <div class="order" @click="handleCount" v-if="!isEdit">去结算</div>
-      <div class="order" @click="handleDeleteItem" v-else>删除</div>
-    </footer> -->
-    <Footer :isEdit="isEdit"></Footer>
+    <Footer :isEdit="isEdit" placeHolder></Footer>
     <TabBar/>
   </div>
 </template>
@@ -102,6 +79,17 @@ export default {
     handleLeftClick() {
       this.$router.push('/search');
     },
+    handleGoHome() {
+      this.$router.push('/home');
+    },
+    handleGoDetail(id) {
+      this.$router.push({
+        path: '/details',
+        query: {
+          id
+        }
+      })
+    },
     async getCartList() {
       let cartRes = await request.$axios({
         url: '/api/selectCart',
@@ -113,14 +101,16 @@ export default {
       cartRes.forEach(item => {
         item['checked'] = true
       });
+      console.log("cart", cartRes);
       this.handleCartList(cartRes);
       this.$nextTick(() => {
-        new BetterScroll(this.$refs.wrapper, {
+        this.scroll = new BetterScroll(this.$refs.wrapper, {
           click: true,
           movable: true,
           zoom: true,
         }) 
-      })
+        console.log('cartScroll', this.scroll);
+      });
     },
     async handleStepperChange(value, item) {
       const data = await request.$axios({
@@ -171,145 +161,75 @@ export default {
 </script>
 
 <style scoped lang="scss">
-
 .cart {
   width: 100vw;
   height: 100vh;
   background-color: #f5f6f5;
-}
-.toolbar-header {
-  width: 100vw;
-  height: 1.2rem;
-}
 
-header {
-  display: flex;
-  position: fixed;
-  top: 0;
-  left: 0;
-  justify-content: space-between;
-  align-items: center;
-  height: 1.2rem;
-  width: 100vw;
-  background: linear-gradient(to right, #D18686, #B23833);
-  color: #fff;
-  z-index: 10;
-
-  i {
-    padding: 0 0.4rem;
-    font-size: 0.59rem;
+  .bottom-button {
+    width: 160px;
+    height: 40px;
   }
 
-  span {
-    padding: 0 0.4rem;
-    font-size: 0.48rem;
-  }
-}
+  section {
+    height: calc(100vh - 146px);
+    // flex: 1;
+    overflow: hidden;
+    background-color: #f5f6f5;
 
-section {
-  background-color: #f5f6f5;
-  
-  .cart-title {
-    display: flex;
-    padding: 0.53rem;
-
-    span {
-      padding: 0 0.4rem;
-      font-weight: 500;
-      font-size: 0.48rem;
-    }
-  }
-
-  ul {
-    display: flex;
-    flex-direction: column;
-    padding: 0 0.2rem;
-
-    li {
+    ul {
       display: flex;
-      // justify-content: space-between;
-      align-items: center;
-      padding: 0.25rem 0.5rem;
-      margin: 0.21rem 0;
-      background-color: #fff;
-      border-radius: 10px;
+      flex-direction: column;
+      padding: 0 0.2rem;
 
-      .check {
-        padding-right: 0.37rem;
-      }
-
-      img {
-        width: 1.97rem;
-        height: 1.97rem;
-      }
-
-      .goods {
+      li {
         display: flex;
-        width: 100%;
-        flex-direction: column;
-        padding-left: 0.4rem;
-        font-size: 0.32rem;
+        align-items: center;
+        padding: 0.25rem 0.5rem;
+        margin: 0.21rem 0;
+        background-color: #fff;
+        border-radius: 10px;
 
-        &-title {
+        .check {
+          padding-right: 0.37rem;
+        }
+
+        img {
+          width: 1.97rem;
+          height: 1.97rem;
+        }
+
+        .goods {
           display: flex;
-          justify-content: space-between;
+          width: 100%;
+          flex-direction: column;
+          padding-left: 0.4rem;
+          font-size: 0.32rem;
 
-          span {
-            font-size: 0.48rem;
+          &-title {
+            display: flex;
+            justify-content: space-between;
+
+            span {
+              font-size: 0.48rem;
+            }
+
+            i {
+              font-size: 0.59rem;
+            }
           }
 
-          i {
-            font-size: 0.59rem;
+          &-price {
+            padding: 0.08rem 0;
+            color: #b0352f;
           }
-        }
 
-        &-price {
-          padding: 0.08rem 0;
-          color: #b0352f;
-        }
-
-        ::v-deep .van-stepper{
-          text-align: right;
+          ::v-deep .van-stepper{
+            text-align: right;
+          }
         }
       }
     }
   }
-}
-
-footer {
-  position: absolute;
-  bottom: 50px;
-  display: flex;
-  justify-content: space-between;
-  height: 1rem;
-  width: 100vw;
-  align-items: center;
-  background-color: #fff;
-  .radio {
-    padding: 0 0.4rem;
-  }
-
-  .total {
-    flex: 1;
-    font-size: 0.32rem;
-
-    &-active {
-      color: #b0352f;
-    }
-  }
-
-  .order {
-    width: 3.2rem;
-    line-height: 1rem;
-    color: #fff;
-    text-align: center;
-    font-size: 0.43rem;
-    background-color: #b0352f;
-  }
-}
-
-.toolbar {
-  width: 100vw;
-  height: 100px;
 }
 </style>

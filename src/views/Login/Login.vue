@@ -1,19 +1,44 @@
 <template>
-    <div class="container">
-        <Header/>
+    <div class="login container">
+        <Header title="验证码登录" back="/my"></Header>
         <section>
-            <div class="login-tel">
+            <!-- <div class="login-tel">
                 <input type="text" v-model="userTel" placeholder="请输入手机号" pattern="[0-9]*"/>
-            </div>
-            <div class="login-code">
-                <input type="text" v-model="msgCode" placeholder="请输入短信验证码" pattern="[0-9]*"/>
-                <button @click="handleMsgCode" :disabled="disabled">{{ codeMsg }}</button>
-            </div>
-            <div class="login-btn" @click="handleLogin">登录</div>
+            </div> -->
+            <van-form @submit="handleLogin">
+                <van-field
+                    v-model="userTel"
+                    type="tel"
+                    label="手机号"
+                    name="手机号"
+                    placeholder="请输入手机号"
+                    :rules="[{ required: true }, { pattern: /^1[23456789]\d{9}$/, message: '手机格式不正确'}]"
+                 />
+                <van-field
+                    v-model="msgCode"
+                    center
+                    clearable
+                    name="短信验证码"
+                    label="短信验证码"
+                    placeholder="请输入短信验证码"
+                    :rules="[{ required: true }, { pattern: /\d{4}/, message: '验证码格式不正确'}]"
+                    >
+                    <template #button>
+                        <van-button size="small" plain type="info" @click="handleMsgCode">{{ codeMsg }}</van-button>
+                    </template>
+                </van-field>
+                <van-button class="login-btn" type="info" native-type="submit">登录</van-button>
+                <!-- <div class="login-code">
+                    <input type="text" v-model="msgCode" placeholder="请输入短信验证码" pattern="[0-9]*"/>
+                    <button @click="handleMsgCode" :disabled="disabled">{{ codeMsg }}</button>
+                </div> -->
+                <!-- <div class="login-btn" @click="handleLogin">登录</div> -->
+                
+            </van-form>
             <div class="tab">
-                <span @click="handleUserLogin">密码登录</span>
-                <span @click="handleRegister">快速注册</span>
-            </div>
+                    <span @click="handleUserLogin">密码登录</span>
+                    <span @click="handleRegister">快速注册</span>
+                </div>
         </section>
     </div>
 </template>
@@ -30,7 +55,7 @@ export default {
         return {
             disabled: false,
             userTel: '',
-            codeTime: 6,
+            codeTime: 60,
             msgCode: '',
             codeMsg: '获取验证码',
             trueCode: '',
@@ -51,10 +76,13 @@ export default {
         handleUserLogin() {
             this.$router.push('/userLogin');
         },
+        validtor(val) {
+            return /^1[3456789]\d{9}$/.test(val);
+        },
         async handleLogin() {
             console.log(this.userTel, this.msgCode);
-            if (!this.validate('userTel')) return;
-            if (!this.validate('msgCode')) return;
+            // if (!this.validate('userTel')) return;
+            // if (!this.validate('msgCode')) return;
 
             console.log(this.trueCode, this.msgCode);
             if (this.trueCode == this.msgCode) {
@@ -99,10 +127,10 @@ export default {
 
             setTimeout(() => {
                 clearInterval(timer);
-                this.codeTime = 6;
+                this.codeTime = 60;
                 this.disabled = false;
                 this.codeMsg = '重新发送';
-            }, 6000)
+            }, 60000)
         },
         validate(key) {
             let bool = true;
@@ -125,66 +153,75 @@ export default {
 
 <style lang="scss" scoped>
 section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background-color: #f5f5f5;
-
-    div {
-        margin: 0.27rem 0;
-        width: 8.9rem;
-        height: 1.17rem;
-    }
-
-    input {
-        box-sizing: border-box;
-        padding: 0 0.27rem;
-        line-height: 1.17rem;
-        background-color: #fff;
-        border: solid 1px #ccc;
-        border-radius: 4px;
-    }
-    
-    .login-tel {
-        margin-top: 0.8rem;
-        input{
-            width: 100%;
-        }
-    }
-
-    .login-code {
-        display: flex;
-
-        input {
-            flex: 1;
-        }
-
-        button {
-            margin-left: 0.27rem;
-            padding: 0 0.53rem;
-            line-height: 1.17rem;
-            background-color: #b0352f;
-            color: #fff;
-            border: 0;
-            border-radius: 4px;
-        }
-    }
-    
     .login-btn {
-        line-height: 1.17rem;
-        color: #fff;
-        text-align: center;
-        background-color: #b0352f;
-        border-radius: 4px;
-
+        margin: 0.6rem 5% 0.1rem;
+        width: 90%;
     }
 
     .tab {
         display: flex;
         justify-content: space-between;
+        padding: 0 5%;
         font-size: 0.48rem;
         font-weight: 500;
+        color: #646566;
     }
+    // display: flex;
+    // flex-direction: column;
+    // align-items: center;
+    // width: 100vw;
+    // background-color: #f5f5f5;
+
+    // div {
+    //     margin: 0.27rem 0;
+    //     width: 8.9rem;
+    //     height: 1.17rem;
+    // }
+
+    // input {
+    //     box-sizing: border-box;
+    //     padding: 0 0.27rem;
+    //     line-height: 1.17rem;
+    //     background-color: #fff;
+    //     border: solid 1px #ccc;
+    //     border-radius: 4px;
+    // }
+    
+    // .login-tel {
+    //     margin-top: 0.8rem;
+    //     input{
+    //         width: 100%;
+    //     }
+    // }
+
+    // .login-code {
+    //     display: flex;
+
+    //     input {
+    //         flex: 1;
+    //     }
+
+    //     button {
+    //         margin-left: 0.27rem;
+    //         padding: 0 0.53rem;
+    //         line-height: 1.17rem;
+    //         background-color: #b0352f;
+    //         color: #fff;
+    //         border: 0;
+    //         border-radius: 4px;
+    //     }
+    // }
+    
+    // .login-btn {
+    //     line-height: 1.17rem;
+    //     color: #fff;
+    //     text-align: center;
+    //     background-color: #b0352f;
+    //     border-radius: 4px;
+
+    // }
+
+    
 }
 
 </style>

@@ -1,59 +1,65 @@
 <template>
     <div class="order container">
-        <Header>
-           <span>提交订单</span>
-        </Header>
-        <section>
-            <div class="delivery-info">
-                <div class="info-title">收货信息</div>
-                <div class="info-main" @click="handleAddressChange">
-                    <span>{{ path.name }}</span>
-                    <span>{{ path.tel }}</span>
-                    <div class="info-address">
+        <Header title="提交订单"></Header>
+        <section  ref="wrapper">
+            <div>
+                <div class="delivery" @click="handleAddressChange">
+                    <div>
+                        <span class="delivery-hightlight">[默认]</span>
                         <span>{{ path.province }}</span>
                         <span>{{ path.city }}</span>
                         <span>{{ path.county }}</span>
-                        <span>{{ path.address_detail }}</span>
                     </div>
+                    <p class="delivery-detail">{{ path.address_detail }}</p>
+                    <span>{{ path.name }}</span>
+                    <span>{{ path.tel }}</span>
+                </div>
+            
+                <ul>
+                    <li v-for="item in selectedList" :key="item.id">
+                        <img :src="item.goods_imgUrl" alt="">
+                        <div class="goods">
+                            <div class="goods-title">
+                            <span>{{ item.goods_name }}</span>
+                            </div>
+                            <div class="goods-price">
+                                <span class="active">￥{{ item.goods_price }}</span>
+                                <span>{{ item.goods_num }}</span>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+                <div class="payment">
+                    <div class="payment-title">
+                        <span>支付方式</span>
+                        <span class="active">选择在线支付，随机减 0-100 元</span>
+                    </div>
+                    <van-radio-group class="payment-type" v-model="paymentType" max="1">
+                        <van-radio name="ali">支付宝支付</van-radio>
+                        <van-radio name="wechat">微信支付</van-radio>
+                    </van-radio-group>
                 </div>
             </div>
-            <div class="payment-info">
-                <div class="info-title">
-                    <span>支付方式</span>
-                    <span class="active">选择在线支付，随机减 0-100 元</span>
-                </div>
-                <van-radio-group v-model="paymentType" max="1">
-                    <van-radio name="wechat">微信支付</van-radio>
-                    <van-radio name="ali">支付宝支付</van-radio>
-                    <van-radio name="card">银联支付</van-radio>
-                </van-radio-group>
-            </div>
-            <ul>
-                <li v-for="item in selectedList" :key="item.id">
-                <img :src="item.goods_imgUrl" alt="">
-                <div class="goods">
-                    <div class="goods-title">
-                    <span>{{ item.goods_name }}</span>
-                    </div>
-                    <div class="goods-price">
-                        <span class="active">￥{{ item.goods_price }}</span>
-                        <span>{{ item.goods_num }}</span>
-                    </div>
-                </div>
-                </li>
-            </ul>
+            <div class="toolbar"></div>
         </section>
         <footer>
-            <div class="total" >
+            <!-- <div class="total" >
                 <div>共有<span class="total-active">{{ total.num }}</span>件商品</div>
                 <span>总计：</span><span class="total-active">￥{{ total.price }} + 0 茶币</span>
             </div>
-            <div class="submit-order" @click="handleSubmit">提交订单</div>
+            <div class="submit-order" @click="handleSubmit">提交订单</div> -->
+            <van-submit-bar
+                button-text="提交订单"
+                :price="total.price*100"
+                button-color="linear-gradient(to right, #6BB3FB, #86C1FC)"
+                @submit="handleSubmit"
+            />
         </footer>
     </div>
 </template>
 
 <script>
+import BetterScroll from 'better-scroll';
 import qs from 'qs';
 import { mapGetters, mapMutations, mapState } from 'vuex';
 import { Toast } from 'vant';
@@ -64,7 +70,7 @@ export default {
     name: 'Order',
     data() {
         return {
-            paymentType: 'wechat',
+            paymentType: 'ali',
             path: {},
             // selectedIds: [],
         }
@@ -77,7 +83,8 @@ export default {
         selectedIds: state => state.cart.checkedList,
       }),
       selectedList() {
-        return this.cartList.filter(item => this.selectedIds.indexOf(item.id) > -1);
+        console.log("selected", this.selectedIds, this.cartList);
+        return this.cartList.filter(item => this.selectedIds.indexOf(item.goods_id) > -1);
       },
       total() {
         let price = 0;
@@ -162,15 +169,8 @@ export default {
                 console.log("address??", JSON.parse(this.$route.params.addressInfo));
                 this.path = JSON.parse(this.$route.params.addressInfo);
             }
-        }
-    },
-    async created() {
-        
-        
-        this.handleAddress();
-
-        if (!this.selectedList.length) {
-            this.initSelectedList(this.selectedIds);
+        },
+        async initCartList() {
             const cartList = await request.$axios({
                 url: '/api/selectCart',
                 methods: 'POST',
@@ -181,11 +181,23 @@ export default {
             this.handleCartList(cartList);
         }
     },
-    // activated() {
-    //     bus.$on('changeAddress', function (addressObj) {
-    //         this.path = addressObj;
-    //     }.bind(this));
-    // },
+    async created() {
+        this.handleAddress();
+        console.log("???????????????selected", this.selectedIds);
+        if (!this.selectedIds.length) {
+            console.log("-------------------------");
+            this.initSelectedList(this.selectedIds);
+            this.initCartList();
+        }
+        
+        this.$nextTick(() => {
+            new BetterScroll(this.$refs.wrapper, {
+                click: true,
+                movable: true,
+                zoom: true,
+            });
+        });
+    },
     components: {
         Header
     }
@@ -194,45 +206,48 @@ export default {
 
 <style scoped lang="scss">
 .order {
-    background-color: rgb(240, 240, 240);
+    background-color: #F6F7FB;
     section {
-        .delivery-info {
-            .info-title {
-                padding: 0.24rem;
-                font-size: 0.48rem;
-            }
-
-            .info-main {
-                span {
-                    margin-right: 0.24rem;
-                    font-size: 0.42rem;
-                }
-
-                background-color: #fff;
-                padding: 0.32rem;
-            }
-        }
-
-        .payment-info {
-            margin-top: 0.32rem;
-            padding-bottom: 0.32rem;
+        flex: 1;
+        overflow: hidden;
+        .delivery {
+            position: relative;
             background-color: #fff;
-            .info {
-                &-title {
-                    padding: 0.24rem;
-                    font-size: 0.48rem;
+            padding: 0.24rem 0.42rem;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+            overflow: hidden;
 
-                    .active {
-                        margin-left: 0.24rem;
-                        color: #b0352f;
-                    }
-                }
+            &::before {
+                content: "";
+                position: absolute;
+                left: 0;
+                bottom: 0;
+                // width: 100%;
+                right: 0;
+                height: 2px;
+                background: repeating-linear-gradient(-45deg, #ff6c6c 0, #ff6c6c 20%, transparent 0, transparent 25%, #1989fa 0, #1989fa 45%, transparent 0, transparent 50%);
+                    background-size: 80px;
+            }
+
+            span {
+                font-size: 0.38rem;
+                margin-right: 0.24rem;
+            }
+
+            &-hightlight {
+                color: #C33865;
+            }
+
+            &-detail {
+                font-size: 0.68rem;
             }
         }
-
+        
         ul {
             display: flex;
             flex-direction: column;
+            margin-top: 0.32rem;
 
             li {
                 display: flex;
@@ -240,6 +255,7 @@ export default {
                 padding: 0.16rem 0.53rem;
                 margin: 0.21rem 0;
                 background-color: #fff;
+                border-radius: 10px;
 
                 .check {
                     padding-right: 0.37rem;
@@ -274,38 +290,43 @@ export default {
                 }
             }
         }
+
+        .toolbar {
+            display: flex;
+            width: 100vw;
+            height: 60px;
+            background-color: #1989fa;
+        }
+
+        .payment {
+            // margin: 0.38rem 0 30px;
+            // padding-bottom: 0.32rem;
+            background-color: #fff;
+            border-radius: 10px;
+
+            &-title {
+                padding: 0.24rem;
+                font-size: 0.48rem;
+
+                .active {
+                    margin-left: 0.24rem;
+                    color: #C33865;
+                }
+            }
+
+            &-type {
+                display: flex;
+                font-size: 0.48rem;
+            }
+        }
     }
 
     footer {
         display: flex;
-        justify-content: space-between;
-        padding-left: 0.24rem;
-        height: 1.28rem;
-        border-top: 1px solid #ccc;
-        align-items: center;
-        background-color: #fff;
+        // // justify-content: space-between;
+        height: 50px;
+        // border-top: 1px solid #ccc;
 
-        .total {
-            flex: 1;
-            font-size: 0.32rem;
-
-            &-active {
-            color: #b0352f;
-            }
-        }
-
-        .submit-order {
-            width: 3.2rem;
-            line-height: 1.28rem;
-            color: #fff;
-            text-align: center;
-            font-size: 0.43rem;
-            background-color: #b0352f;
-        }
-
-        ::v-deep .van-stepper{
-          text-align: right;
-        }
     }
 
     ::v-deep .van-radio {

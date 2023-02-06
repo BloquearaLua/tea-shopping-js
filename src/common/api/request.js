@@ -1,7 +1,7 @@
-import { Indicator, Toast } from 'mint-ui';
 import axios from 'axios';
 import store from "@/store";
 import router from "@/router";
+import { Toast } from 'vant';
 export default {
     common: {
         methods: 'GET',
@@ -16,14 +16,18 @@ export default {
         options.headers = options.headers || this.common.headers;
 
         // 请求前 loading...
-        Indicator.open('加载中...');
+        const loadingToast = Toast.loading({
+            message: '加载中...',
+            forbidClick: true,
+            duration: 0,
+          });
 
         const { token } = options.headers;
-        console.log(token);
+        console.log("token", token);
         if (token) {
-            console.log(store.state.user);
+            console.log("user", store.state.user);
             const { token: localToken } = store.state.user;
-            console.log('localToken', localToken);
+            // console.log('localToken', localToken);
             if (!localToken) {
                 router.push('/login');
             } else {
@@ -32,12 +36,12 @@ export default {
         }
         
         return axios(options).then(value => {
-            console.log(value);
+            console.log("res", value);
             let data = value.data.data;
             let code = value.data.code;
             return new Promise((res, rej) => {
                 if (code !== 0) {
-                    Indicator.close();
+                    loadingToast.clear();
                     Toast({
                         message: value.data.msg || 'Error',
                         duration: 3000,
@@ -48,7 +52,7 @@ export default {
                 if (!value) return rej();
                 
                 setTimeout(() => {
-                    Indicator.close();
+                    loadingToast.clear();
                 }, 500);
                 console.log(data);
                 res(data);

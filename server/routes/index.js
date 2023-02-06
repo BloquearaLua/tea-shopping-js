@@ -14,6 +14,11 @@ const AlipayFormData = require('alipay-sdk/lib/form').default;
 
 var router = express.Router();
 
+// 用户相关
+router.use('/user', require('./users'));
+
+// 购物车
+router.use('/cart', require('./cart'));
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -210,18 +215,31 @@ router.get('/api/index_list/2/data/1', function (req, res, next) {
 
 // 查询商品数据接口
 router.get('/api/goods/shopList', function(req, res, next) {
-  // console.log(req.query);
-  let kwd = req.query.keyword;
-  const [orderName] = Object.keys(req.query.order);
-  const [orderBy] = Object.values(req.query.order);
-  const sql = `select * from shopList where name like '%${kwd}%' ${ orderName !== 'combination' ? `order by ${orderName} ${orderBy}` : '' }`;
-  conn.query(sql, (error, results) => {
-    // console.log(results);
-    res.send({
-      code: 0,
-      data: results
+  try {
+    let { keyword, order } = req.query;
+    let orderStr = "";
+    if (order) {
+      const orderName = Object.keys(order);
+      const orderBy = Object.values(order);
+      orderStr = `${orderName[0]} ${orderBy[0]}`;
+      if (orderName.length > 1) {
+        orderStr += `, ${orderName[1]} ${orderBy[1]}`;
+      }
+    }
+  
+    console.log("orderstr", orderStr);
+    const sql = `select * from goods_list where goods_name like '%${keyword}%' ${ order ? `order by ${orderStr}` : '' }`;
+    console.log('sql',sql);
+    conn.query(sql, (error, results) => {
+      console.log(results);
+      res.send({
+        code: 0,
+        data: results
+      })
     })
-  })
+  } catch (error) {
+    console.log(error);
+  }
 })
 
 // 分类接口
@@ -467,13 +485,20 @@ router.get('/api/goods/:id', function (req, res, next) {
   //   code: 0,
   //   data: shoplist.filter(item => item.id === id),
   // })
-  const { id } = +req.params;
-  conn.query(goodsSql.getGoods({ id }), (err, results) => {
+  const { id } = req.params;
+  conn.query(goodsSql.getGoods({ id: +id }), (err, results) => {
     if (!err) {
       res.send({
         code: 0,
         success: true,
         data: [...results],
+      })
+    } else {
+      console.log(err);
+      res.send({
+        code: 10000,
+        success: false,
+        message: err
       })
     }
   })
@@ -724,7 +749,8 @@ router.post('/api/recovery', function(req, res, next) {
 
 // 加入购物车
 router.post('/api/addCart', function(req, res, next) {
-  const { goodsId } = req.body;
+  try {
+    const { goodsId } = req.body;
   const { token } = req.headers;
   const tokenObj = jwt.decode(token);
   console.log('userTEl', goodsId);
@@ -755,6 +781,7 @@ router.post('/api/addCart', function(req, res, next) {
                     code: 0,
                     success: true,
                     message: '添加成功',
+                    data: {},
                   })
                 } else {
                   console.log("update:", err);
@@ -786,6 +813,13 @@ router.post('/api/addCart', function(req, res, next) {
       })
     }
   })
+  } catch (error) {
+    res.send({
+      code: 10000,
+      success: false,
+      message: error
+    })
+  }
 
 })
 

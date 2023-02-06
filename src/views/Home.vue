@@ -1,12 +1,12 @@
 <template>
-  <div class="home">
+  <div class="home container">
     <div class="headers">
       <div class="headers-main">
         <Header></Header>
         <van-tabs
           @change="handleChange"
-          title-active-color="#BC8D85"
-          color="#BC8D85"
+          title-active-color="#6091E8"
+          color="#6091E8"
         >
           <van-tab
             v-for="(tab,index) in tabsList"
@@ -15,17 +15,6 @@
           >
           </van-tab>
         </van-tabs>
-        <!-- <ly-tabs
-          v-model="selectedId"
-          :activeColor="options.activeColor"
-          @change="handleTabChange"
-          >
-          <ly-tab-item
-            v-for="(tab,index) in tabsList"
-            :key="index"
-            :name="index"
-            :title="tab.label" />
-        </ly-tabs> -->
       </div>
     </div>
     <section ref="wrapper">
@@ -54,7 +43,7 @@
         </div>
       </div>
     </section>
-    <TabBar/>
+    <TabBar />
   </div>
   
 </template>
@@ -140,30 +129,24 @@ export default {
 };
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 
 .home {
-  display: flex;
-  flex-direction: column;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-}
+  .headers {
+    width: 100vw;
+    height: px;
 
-.headers {
-  width: 100%;
-  height: 2.88rem;
-}
+    &-main {
+      position: fixed;
+      top: 0;
+      left: 0;
+    }
+  }
 
-.headers-main {
-  position: fixed;
-  top: 0;
-  left: 0;
-}
-
-section {
-  flex: 1;
-  overflow: hidden;
+  section {
+    flex: 1;
+    overflow: hidden;
+  }
 }
 
 ::v-deep .ly-tabs{

@@ -1,43 +1,57 @@
 <template>
     <div class="path container">
-        <Header>
-            <span>地址管理</span>
-        </Header>
-        <section>
+        <Header title="地址管理" back="/my"></Header>
+        <section ref="wrapper">
             <ul v-if="addressList.length">
-                <li v-for="address in addressList" :key="address.id" @click="handleGoDetails('edit', address)">
-                    <div>
+                <li v-for="address in addressList" :key="address.id">
+                    <div class="address">
+                        <div class="base">
+                            <!-- <span class="active" v-if="+address.is_default">[默认]</span> -->
+                            <van-tag class="icon" color="#DB4455" v-if="+address.is_default" type="danger">默认</van-tag>
+                            <span>{{address.province}}</span>
+                            <span>{{address.city}}</span>
+                            <span>{{address.county}}</span>
+                        </div>
+                        <div class="detail">{{address.address_detail}}</div>
+                    </div>
+                    <div class="person">
                         <span>{{address.name}}</span>
                         <span>{{address.tel}}</span>
                     </div>
-                    <div>
-                        <span class="active" v-if="+address.is_default">[默认]</span>
-                        <span>{{address.province}}</span>
-                        <span>{{address.city}}</span>
-                        <span>{{address.county}}</span>
-                        <span>{{address.address_detail}}</span>
-                    </div>
+                    <van-icon class="edit" name="edit" @click="handleGoDetails('edit', address)"/>
                 </li>
             </ul>
-            <div v-else class="">暂无地址</div>
-            <div class="add-path" @click="handleGoDetails('add')">添加地址</div>
+            
+            <van-empty
+                v-else
+                description="暂无地址"
+            >
+                <van-button color="#6091E8" @click="handleGoDetails('add')">
+                    添加地址
+                </van-button>
+            </van-empty>
+            <!-- <div class="add-path" @click="handleGoDetails('add')">添加地址</div> -->
         </section>
-
-        
+        <footer>
+            <van-button round color="#6091E8" class="add-path" @click="handleGoDetails('add')">
+                添加地址
+            </van-button>
+        </footer>
+        <div class="toolbar"></div>
     </div>
 </template>
 
 <script>
+import BetterScroll from 'better-scroll';
 import request from "@/common/api/request";
 import Header from "@/views/Login/Header.vue";
 import { mapMutations, mapState } from "vuex";
-import bus from '@/common/bus';
 
 export default {
     name: 'PathList',
     computed: {
         ...mapState({ addressList: state => state.address.list}),
-    }, 
+    },
     methods: {
         ...mapMutations(['initAddress']),
         handleGoDetails(type, item) {
@@ -82,6 +96,13 @@ export default {
         })
         console.log('address:', data);
         this.initAddress(data);
+        this.$nextTick(() => {
+        new BetterScroll(this.$refs.wrapper, {
+            click: true,
+            movable: true,
+            zoom: true,
+            }) 
+        })
 
     },
     components: {
@@ -101,32 +122,88 @@ section {
     ul{
         width: 100%;
         li {
+            position: relative;
             background-color: #fff;
-            margin: 0.16rem 0;
-            padding: 0.27rem 0.4rem;
+            margin: 0.28rem;
+            padding: 0.32rem 0.4rem;
+            border-radius: 10px;
 
-            span {
-                padding-right: 0.16rem;
-                font-size: 0.43rem;
+            .address {
+                // font-size: 0.42rem;
+
+                .base {
+                    color: #606373;
+                    font-size: 12px;
+                    
+                    .icon {
+                        margin-right: 0.2rem;
+                    }
+
+                    span {
+                        padding-right: 0.16rem;
+                        font-size: 0.36rem;
+                    }
+                }
+                .detail {
+                    width: 85%;
+                    margin-top: 0.1rem;
+                    font-size: 0.42rem;
+                }
+
+                
+                .active {
+                    color: #b0352f;
+                }
             }
 
+            .person {
+                margin-top: 0.2rem;
+                width: 85%;
+                font-size: 0.36rem;
+                color: #606373;
+
+                span {
+                    margin-right: 0.5rem;
+                }
+            }
+
+
+            .edit {
+                position: absolute;
+                top: 50%;
+                right: 20px;
+                transform: translateY(-50%);
+                text-align: center;
+                color: #AAB2BD;
+            }
             
         }
     }
 
-    .add-path {
-        margin-top: 0.33rem;
-        width: 3.2rem;
-        line-height: 1.07rem;
-        font-size: 0.48rem;
-        text-align: center;
-        color: #fff;
-        background-color: #b0352f;
-        border-radius: 3px;
-    }
+    
+}
 
-    .active {
-        color: #b0352f;
+footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    width: 100vw;
+    height: 60px;
+    // background-color: #b0352f;
+
+    .add-path {
+        position: absolute;
+        // bottom: 10px;
+        width: 90%;
+        font-size: 0.42rem;
     }
+}
+.toolbar {
+    width: 100vw;
+    height: 60px;
 }
 </style>

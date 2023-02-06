@@ -1,5 +1,5 @@
 <template>
-    <header>
+    <!-- <header>
         <div class="search-return" @click="handleReturn">
             <i class="iconfont icon-fanhui"></i>
         </div>
@@ -10,10 +10,29 @@
             </form>
         </div>
         <div class="search-btn" @click="handleSearch">搜索</div>
+    </header> -->
+    <header>
+        <van-icon
+            class="icon-return"
+            name="arrow-left"
+            size="0.5rem"
+            @click="handleReturn"
+        />
+        <van-search
+            v-model="keyword"
+            show-action
+            placeholder="请输入搜索关键词"
+            @search="handleSearch"
+            >
+            <template #action>
+                <div @click="handleSearch">搜索</div>
+            </template>
+        </van-search>
     </header>
 </template>
 
 <script>
+import { Toast } from 'vant';
 export default {
     name: 'Header',
     data() {
@@ -24,10 +43,13 @@ export default {
     },
     methods: {
         handleReturn() {
-            this.$router.go(-1);
+            this.$router.back();
         },
         handleSearch() {
-            if (!this.keyword.trim()) return;
+            if (!this.keyword.trim()) {
+                Toast('请输入关键词');
+                return;
+            };
             // 判断之前有没有搜索的本地存储
             if (!localStorage.getItem('keywordList')) {
                 localStorage.setItem('keywordList', []);
@@ -55,18 +77,26 @@ export default {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+
+.van-search  {
+    width: 100%;
+}
+
 header {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    width: 100%;
-    height: 1.17rem;
-    color: #fff;
-    background-color: #b0352f;
+    width: 100vw;
+    height: 50px;
+    background-color: #fff;
+
+    .icon-return {
+        padding-left: .225rem;
+    }
 }
 
-.search-return,
+/* .search-return,
 .search-btn {
     padding: 0 0.27rem;
 }
@@ -103,5 +133,5 @@ header {
 
 .search-btn {
     font-size: 0.43rem;
-}
+} */
 </style>

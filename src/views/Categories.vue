@@ -135,8 +135,9 @@ export default {
     }
 
     .active {
-      color: #b0352f;
-      border-left: solid 1px #b0352f;
+      color: #6091E8;
+      border-left: solid 1px #6091E8;
+      font-weight: 600;
     }
 
     .cate-r {

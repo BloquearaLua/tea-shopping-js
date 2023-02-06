@@ -9,10 +9,15 @@
 
     </header>
     <section>
-      <ul>
+      <!-- <ul>
         <li @click="handlePathManage">地址管理</li>
         <li v-if="loginStatus" @click="logout">退出账号</li>
-      </ul>
+      </ul> -->
+      <van-list>
+        <van-cell />
+        <van-cell title="地址管理" />
+        <van-cell title="退出账号" v-if="loginStatus" @click="logout" />
+      </van-list>
     </section>
     <TabBar/>
   </div>
@@ -59,7 +64,9 @@ export default {
     position: relative;
     width: 100%;
     height: 4.3rem;
-    background-color: #b0352f;
+    // background-color: #b0352f;
+    // background: linear-gradient(to right, #6068E8, #A6AAE7);
+    background: linear-gradient(to right, #3395E5, #EC6FAE);
 
     .login {
       position: absolute;
@@ -67,10 +74,11 @@ export default {
       left: 50%;
       transform: translate(-50%, -50%);
       padding: 0.16rem 0.4rem;
-      color: #fff;
+      color: black;
       font-size: 0.43rem;
-      border-radius: 6px;
-      background-color: #f6ab32;
+      border-radius: 8px;
+      background: linear-gradient(to right, #F2904F, #3B4270);
+      background: #fff;
       cursor: pointer;
     }
 
@@ -106,7 +114,7 @@ export default {
 
     ul li {
       padding: 0.4rem;
-      fz : 0.43rem;
+      font-size: 0.43rem;
     }
   }
 }
