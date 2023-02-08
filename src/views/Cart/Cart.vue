@@ -6,7 +6,7 @@
         placeholder
         title="购物车"
         :right-text="isEdit ? '完成' : '编辑'"
-        @click-left="handleLeftClick"
+        @click-left="handleJump('/search')"
         @click-right="isEdit = !isEdit"
       >
         <template #left>
@@ -17,7 +17,7 @@
 
     <section v-if="cartList.length" ref="wrapper">
       <ul>
-        <li v-for="item in cartList" :key="item.id" @click="handleGoDetail(item.goods_id)">
+        <li v-for="item in cartList" :key="item.id" @click.self="handleGoDetail(item.goods_id)">
           <div class="check">
             <van-checkbox @click="checkOne(item.id)" v-model="item.checked"></van-checkbox>
           </div>
@@ -38,7 +38,7 @@
         description="购物车还没有物品，快去逛逛 ~"
         image="https://img01.yzcdn.cn/vant/custom-empty-image.png"
       >
-        <van-button round color="#6091E8" class="bottom-button" @click="handleGoHome">
+        <van-button round color="#6091E8" class="bottom-button" @click="handleJump('/home')">
           去首页
         </van-button>
       </van-empty>
@@ -50,7 +50,6 @@
 
 <script>
 import BetterScroll from 'better-scroll';
-import { Toast } from 'vant';
 import { mapActions, mapGetters, mapMutations, mapState } from 'vuex';
 import TabBar from '@/components/common/TabBar.vue';
 import Footer from './Footer.vue';
@@ -74,13 +73,10 @@ export default {
     this.getCartList();
   },
   methods: {
-    ...mapMutations(['handleCartList', 'checkOne', 'initOrder']),
-    ...mapActions(['handleCheckAll', 'handleDeleteItem']),
-    handleLeftClick() {
-      this.$router.push('/search');
-    },
-    handleGoHome() {
-      this.$router.push('/home');
+    ...mapMutations(['handleCartList', 'checkOne']),
+    ...mapActions(['handleDeleteItem']),
+    handleJump(url) {
+      this.$router.push(url);
     },
     handleGoDetail(id) {
       this.$router.push({
@@ -92,7 +88,7 @@ export default {
     },
     async getCartList() {
       let cartRes = await request.$axios({
-        url: '/api/selectCart',
+        url: '/api/cart/list',
         methods: 'POST',
         headers: {
           token: true,
@@ -113,8 +109,8 @@ export default {
       });
     },
     async handleStepperChange(value, item) {
-      const data = await request.$axios({
-        url: '/api/cart/updateNum',
+      await request.$axios({
+        url: '/api/cart/update',
         methods: 'POST',
         data: {
           id: item.id,
@@ -122,36 +118,6 @@ export default {
         }
       });
     },
-    async handleCount() {
-      console.log("this.checkedList", this.checkedList);
-      if (this.checkedList.length) {
-        const data = await request.$axios({
-          url: '/api/order/add',
-          methods: 'POST',
-          headers: {
-            token: true,
-          },
-          data: {
-            goodsGroup: this.cartList.filter(item => this.checkedList.indexOf(item.id) > -1)
-          }
-        })
-
-        console.log("order", data);
-        if (data[0].order_status === 1) {
-          this.initOrder(data);
-          this.$router.push({
-            name: 'Order',
-            query: {
-              selectedIds: JSON.stringify(this.checkedList)
-            }
-          });
-        }
-        
-      } else {
-        Toast('请至少选择一件商品');
-      }
-      
-    }
   },
   components: {
     TabBar,
@@ -189,6 +155,7 @@ export default {
         margin: 0.21rem 0;
         background-color: #fff;
         border-radius: 10px;
+        z-index: 0;
 
         .check {
           padding-right: 0.37rem;

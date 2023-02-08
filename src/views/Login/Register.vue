@@ -36,17 +36,6 @@
                 />
                 <van-button class="login-btn" type="info" native-type="submit">注册</van-button>
             </van-form>
-            <!-- <div class="login-tel">
-                <input type="text" v-model="userTel" placeholder="请输入手机号" />
-            </div>
-            <div class="login-code">
-                <input type="text" v-model="msgCode" placeholder="请输入短信验证码" pattern="[0-9]*" />
-                <button @click="handleMsgCode" :disabled="disabled">{{ codeMsg }}</button>
-            </div>
-            <div class="login-pwd">
-                <input type="password" v-model="userPwd" placeholder="请输入密码" />
-            </div>
-            <div class="register-btn" @click="handleRegister">注册</div> -->
         </section>
     </div>
 </template>
@@ -63,7 +52,7 @@ export default {
             disabled: false,
             userTel: '',
             userPwd: '',
-            codeTime: 6,
+            codeTime: 60,
             msgCode: '',
             codeMsg: '获取验证码',
             trueCode: '',
@@ -91,7 +80,7 @@ export default {
             
             if (this.trueCode == this.msgCode) {
                 const data = await request.$axios({
-                    url: '/api/register',
+                    url: '/api/user/register',
                     methods: 'POST',
                     data: {
                         userTel: this.userTel,
@@ -100,9 +89,10 @@ export default {
                 })
                 console.log("register:", data);
                 Toast({
-                    message: '登录成功',
+                    message: '注册成功',
                     duration: 1000
-                })
+                });
+                this.$router.push('/login');
             } else {
                 Toast({
                     message: '验证码错误，请重新输入',
@@ -114,7 +104,7 @@ export default {
             if (!this.validate('userTel')) return;
 
             const data = await request.$axios({
-                url: 'api/login/code',
+                url: '/api/user/login/code',
                 methods: 'POST',
                 data: {
                     phone: this.userTel
@@ -130,15 +120,15 @@ export default {
 
             setTimeout(() => {
                 clearInterval(timer);
-                this.codeTime = 6;
+                this.codeTime = 60;
                 this.disabled = false;
                 this.codeMsg = '重新发送';
-            }, 6000)
+            }, 60000)
         },
         validate(key) {
             let bool = true;
             if (!this.rules[key].rule.test(this[key])) {
-                Toast(this.rules[key].msg);
+                // Toast(this.rules[key].msg);
                 bool = false;
                 return false;
             }
@@ -156,69 +146,5 @@ export default {
     margin: 0.6rem 5% 0.1rem;
     width: 90%;
 }
-// section {
-//     display: flex;
-//     flex-direction: column;
-//     align-items: center;
-//     background-color: #f5f5f5;
-
-//     div {
-//         margin: 0.27rem 0;
-//         width: 8.9rem;
-//         height: 1.17rem;
-//     }
-
-//     input {
-//         box-sizing: border-box;
-//         padding: 0 0.27rem;
-//         line-height: 1.17rem;
-//         background-color: #fff;
-//         border: solid 1px #ccc;
-//         border-radius: 4px;
-//     }
-    
-//     .login{
-//         &-tel {
-//             margin-top: 0.8rem;
-//             input {
-//                 width: 100%;
-//             }
-//         }
-//         &-pwd {
-//             margin-top: 0.28rem;
-//             input {
-//                 width: 100%;
-//             }
-//         }
-//     }
-    
-
-//     .login-code {
-//         display: flex;
-
-//         input {
-//             flex: 1;
-//         }
-
-//         button {
-//             margin-left: 0.27rem;
-//             padding: 0 0.53rem;
-//             line-height: 1.17rem;
-//             background-color: #b0352f;
-//             color: #fff;
-//             border: 0;
-//             border-radius: 4px;
-//         }
-//     }
-    
-//     .register-btn {
-//         line-height: 1.17rem;
-//         color: #fff;
-//         text-align: center;
-//         background-color: #b0352f;
-//         border-radius: 4px;
-
-//     }
-// }
 
 </style>

@@ -7,9 +7,9 @@
         replace
         :to="tab.path"
         :icon="tab.icon"
-        :badge="tab.badge ? cartLength : null"
+        :badge="tab.badge ? cartCount : null"
       >
-        首页
+        {{ tab.name }}
       </van-tabbar-item>
     </van-tabbar>
   </div>
@@ -28,29 +28,33 @@ export default {
           id: 1,
           path: '/home',
           icon: 'home-o',
+          name: '首页'
         },
         {
           id: 2,
           path: '/categories',
           icon: 'apps-o',
+          name: '分类'
         },
         {
           id: 3,
           path: '/cart',
           icon: 'cart-o',
+          name: '购物车',
           badge: true,
         },
         {
           id: 4,
           path: '/my',
           icon: 'contact',
+          name: '我的'
         },
       ]
     }
   },
   computed: {
     ...mapState({
-      cartLength: state => state.cart.cartList.length
+      cartCount: state => state.cart.cartCount
     })
   },
   methods: {

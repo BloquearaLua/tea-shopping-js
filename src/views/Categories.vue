@@ -56,7 +56,7 @@ export default {
   },
   methods: {
     async getCategoriesList() {
-      const res = await request.$axios({ url: "/api/goods/list" });
+      const res = await request.$axios({ url: "/api/goods/category" });
       console.log(res);
       this.categoriesList = res;
 

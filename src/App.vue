@@ -12,6 +12,7 @@
 export default {
   created() {
     this.$store.commit('initUser');
+    this.$store.dispatch('handleCartCount');
   }
 }
 </script>

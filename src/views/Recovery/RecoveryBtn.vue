@@ -1,11 +1,18 @@
 <template>
     <div class="container">
-        <Header>找回密码</Header>
+        <Header title="找回密码" back="/login"></Header>
         <section>
-            <div class="login-tel">
-                <input type="password" v-model="userPwd" placeholder="请输入密码" />
-            </div>
-            <div class="register-btn" @click="handleSubmit">确认修改</div>
+            <van-field
+                v-model="userPwd"
+                center
+                clearable
+                type="password"
+                name="密码"
+                label="密码"
+                placeholder="请输入密码"
+                :rules="[{ required: true }, { pattern: /^\w{6,12}$/, message: '密码格式不正确'}]"
+            />
+            <van-button class="info-btn" type="info" @click="handleSubmit">确认修改</van-button>
         </section>
     </div>
 </template>
@@ -34,16 +41,18 @@ export default {
         async handleSubmit() {
             if (!this.validate('userPwd')) return;
 
-            const data = request.$axios({
-                url: '/api/recovery',
+            const data = await request.$axios({
+                url: '/api/user/recovery',
                 methods: 'POST',
                 data: {
                     userTel: this.$route.query.userTel,
                     userPwd: this.userPwd
                 }
             })
+            console.log("------", data);
             if (!!data) {
-                this.$router.push('/login')
+                Toast("修改成功");
+                this.$router.push('/login');
             }
         },
         validate(key) {
@@ -64,68 +73,72 @@ export default {
 
 <style lang="scss" scoped>
 section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background-color: #f5f5f5;
-
-    div {
-        margin: 0.27rem 0;
-        width: 8.9rem;
-        height: 1.17rem;
+    .info-btn {
+        margin: 0.6rem 5% 0.1rem;
+        width: 90%;
     }
+    // display: flex;
+    // flex-direction: column;
+    // align-items: center;
+    // background-color: #f5f5f5;
 
-    input {
-        box-sizing: border-box;
-        padding: 0 0.27rem;
-        line-height: 1.17rem;
-        background-color: #fff;
-        border: solid 1px #ccc;
-        border-radius: 4px;
-    }
+    // div {
+    //     margin: 0.27rem 0;
+    //     width: 8.9rem;
+    //     height: 1.17rem;
+    // }
+
+    // input {
+    //     box-sizing: border-box;
+    //     padding: 0 0.27rem;
+    //     line-height: 1.17rem;
+    //     background-color: #fff;
+    //     border: solid 1px #ccc;
+    //     border-radius: 4px;
+    // }
     
-    .login{
-        &-tel {
-            margin-top: 0.8rem;
-            input {
-                width: 100%;
-            }
-        }
-        &-pwd {
-            margin-top: 0.28rem;
-            input {
-                width: 100%;
-            }
-        }
-    }
+    // .login{
+    //     &-tel {
+    //         margin-top: 0.8rem;
+    //         input {
+    //             width: 100%;
+    //         }
+    //     }
+    //     &-pwd {
+    //         margin-top: 0.28rem;
+    //         input {
+    //             width: 100%;
+    //         }
+    //     }
+    // }
     
 
-    .login-code {
-        display: flex;
+    // .login-code {
+    //     display: flex;
 
-        input {
-            flex: 1;
-        }
+    //     input {
+    //         flex: 1;
+    //     }
 
-        button {
-            margin-left: 0.27rem;
-            padding: 0 0.53rem;
-            line-height: 1.17rem;
-            background-color: #b0352f;
-            color: #fff;
-            border: 0;
-            border-radius: 4px;
-        }
-    }
+    //     button {
+    //         margin-left: 0.27rem;
+    //         padding: 0 0.53rem;
+    //         line-height: 1.17rem;
+    //         background-color: #b0352f;
+    //         color: #fff;
+    //         border: 0;
+    //         border-radius: 4px;
+    //     }
+    // }
     
-    .register-btn {
-        line-height: 1.17rem;
-        color: #fff;
-        text-align: center;
-        background-color: #b0352f;
-        border-radius: 4px;
+    // .register-btn {
+    //     line-height: 1.17rem;
+    //     color: #fff;
+    //     text-align: center;
+    //     background-color: #b0352f;
+    //     border-radius: 4px;
 
-    }
+    // }
 }
 
 </style>

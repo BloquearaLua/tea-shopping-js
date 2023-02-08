@@ -18,7 +18,12 @@
                         <span>{{address.name}}</span>
                         <span>{{address.tel}}</span>
                     </div>
-                    <van-icon class="edit" name="edit" @click="handleGoDetails('edit', address)"/>
+                    <van-icon
+                        class="edit"
+                        name="edit"
+                        size="0.7rem"
+                        @click="handleGoDetails('edit', address)"
+                    />
                 </li>
             </ul>
             
@@ -30,7 +35,6 @@
                     添加地址
                 </van-button>
             </van-empty>
-            <!-- <div class="add-path" @click="handleGoDetails('add')">添加地址</div> -->
         </section>
         <footer>
             <van-button round color="#6091E8" class="add-path" @click="handleGoDetails('add')">
@@ -57,9 +61,6 @@ export default {
         handleGoDetails(type, item) {
             const selected_type = this.$route.params.type === 'select';
             if (selected_type) {
-                // bus.$emit('changeAddress', item);
-                // this.$router.back();
-                console.log("???", item);
                 this.$router.replace({
                     name: 'Order',
                     params: {
@@ -88,7 +89,7 @@ export default {
     },
     async created() {
         const data = await request.$axios({
-            url: '/api/address',
+            url: '/api/address/list',
             methods: 'POST',
             headers: {
                 token: true,

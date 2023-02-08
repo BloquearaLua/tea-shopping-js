@@ -69,7 +69,7 @@ export default {
         async getData() {
             console.log('order', this.orderBy);
             const data = await request.$axios({ 
-                url: `/api/goods/shopList`,
+                url: `/api/goods/list`,
                 params: {
                     keyword: this.$route.query.keyword,
                     order: {

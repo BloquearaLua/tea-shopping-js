@@ -1,10 +1,12 @@
 import request from "@/common/api/request";
 import { Dialog, Toast } from "vant";
-import { CART_LIST, CHECK_ALL, CHECK_NONE, CHECK_ONE, INIT_SELECTED_LIST, INIT_TOTAL } from "./mutation-type";
+import { CART_LIST, CHECK_ALL, CHECK_NONE, CHECK_ONE, INIT_SELECTED_LIST, INIT_CART_COUNT } from "./mutation-type";
+
 export default {
     state: {
         cartList: [],
         checkedList: [],
+        cartCount: 0,
     },
     getters: {
         isCheckedAll(state) {
@@ -30,6 +32,7 @@ export default {
         [CART_LIST](state, cartArr) {
             state.cartList = cartArr;
             state.checkedList = cartArr.map(item => item.id);
+            state.cartCount = cartArr.length;
         },
         [CHECK_ALL](state) {
             console.log("?????????");
@@ -57,6 +60,9 @@ export default {
         [INIT_SELECTED_LIST](state, selectedIds) {
             state.checkedList = selectedIds;
         },
+        [INIT_CART_COUNT](state, count) {
+            state.cartCount = count;
+        }
     },
     actions: {
         handleCheckAll({ commit, getters }) {
@@ -106,9 +112,20 @@ export default {
                     }));
                     state.checkedList = [...cartRes];
                 }
-            }).catch(() => {
-
             })
+        },
+        async handleCartCount({ commit }) {
+            const data = await request.$axios({
+                url: '/api/cart/count',
+                methods: 'POST',
+                headers: {
+                    token: true
+                }
+            });
+            if (!!data) {
+                console.log("count", data);
+                commit(INIT_CART_COUNT, data.count);
+            }
         }
     }
 }

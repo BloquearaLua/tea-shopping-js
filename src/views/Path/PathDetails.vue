@@ -93,7 +93,6 @@ export default {
         this.type = this.$route.params.type;
         if (this.type === 'edit') {
             this.addressInfo = JSON.parse(this.$route.params.data);
-            
         }
     },
     components: {

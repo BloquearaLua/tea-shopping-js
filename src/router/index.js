@@ -71,11 +71,11 @@ const routes = [
     name: "Login",
     component: () => import("../views/Login/Login.vue"),
   },
-  {
-    path: "/userLogin",
-    name: "UserLogin",
-    component: () => import("../views/Login/UserLogin.vue"),
-  },
+  // {
+  //   path: "/userLogin",
+  //   name: "UserLogin",
+  //   component: () => import("../views/Login/UserLogin.vue"),
+  // },
   {
     path: "/register",
     name: "Register",

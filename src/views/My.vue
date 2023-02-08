@@ -5,17 +5,23 @@
         <img src="../../public/images/avatar.jpeg" alt="">
         <span>{{ userInfo.nick_name || userInfo.tel }}</span>
       </div>
-      <div v-else class="login" @click="handleLogin">登录/注册</div>
-
+      <van-button 
+        v-else
+        class="login"
+        type="default"
+        size="small"
+        @click="handleLogin"
+      >
+        登录/注册
+      </van-button>
     </header>
     <section>
-      <!-- <ul>
-        <li @click="handlePathManage">地址管理</li>
-        <li v-if="loginStatus" @click="logout">退出账号</li>
-      </ul> -->
       <van-list>
         <van-cell />
-        <van-cell title="地址管理" />
+        <van-cell title="我的订单" />
+        <van-cell title="查看物流" />
+        <van-cell title="地址管理" @click="handlePathManage" />
+        <van-cell title="我的客服" />
         <van-cell title="退出账号" v-if="loginStatus" @click="logout" />
       </van-list>
     </section>
@@ -64,8 +70,6 @@ export default {
     position: relative;
     width: 100%;
     height: 4.3rem;
-    // background-color: #b0352f;
-    // background: linear-gradient(to right, #6068E8, #A6AAE7);
     background: linear-gradient(to right, #3395E5, #EC6FAE);
 
     .login {
@@ -73,13 +77,6 @@ export default {
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      padding: 0.16rem 0.4rem;
-      color: black;
-      font-size: 0.43rem;
-      border-radius: 8px;
-      background: linear-gradient(to right, #F2904F, #3B4270);
-      background: #fff;
-      cursor: pointer;
     }
 
     .user-info {
@@ -105,16 +102,6 @@ export default {
         text-align: center;
         color: #fff;
       }
-    }
-  }
-
-  section {
-    flex: 1;
-    overflow: hidden;
-
-    ul li {
-      padding: 0.4rem;
-      font-size: 0.43rem;
     }
   }
 }

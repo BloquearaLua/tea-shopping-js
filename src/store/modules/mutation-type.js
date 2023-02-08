@@ -12,5 +12,6 @@ export const INIT_ADDRESS = 'initAddress';
 export const INIT_ORDER = 'initOrder';
 export const INIT_SELECTED_LIST = 'initSelectedList';
 export const INIT_TOTAL = 'initTotal';
+export const INIT_CART_COUNT = 'initCartCount';
 
 

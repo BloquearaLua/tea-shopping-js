@@ -135,7 +135,7 @@ export default {
             const goodsId = this.$route.query.id;
             console.log("goodsId", goodsId);
             const data = await request.$axios({
-                url: '/api/addCart',
+                url: '/api/cart/add',
                 methods: 'POST',
                 data: {
                     goodsId,

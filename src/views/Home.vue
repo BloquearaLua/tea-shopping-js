@@ -81,7 +81,7 @@ export default {
       // console.log("tabIndex", tabIndex);
     },
     async getData() {
-      const res = await request.$axios({ url: '/api/index_list/0/data/1' });
+      const res = await request.$axios({ url: '/api/home/index_list/0/data/1' });
       this.tabsList = Object.freeze(res.topBar);
       this.newData = Object.freeze(res.data);
 
@@ -94,7 +94,7 @@ export default {
       })
     },
     async addData(index) {
-      let res = await request.$axios({ url: `/api/index_list/${index}/data/1` });
+      let res = await request.$axios({ url: `/api/home/index_list/${index}/data/1` });
       // console.log("addData", res);
 
       if (res.constructor != Array) {
@@ -134,7 +134,7 @@ export default {
 .home {
   .headers {
     width: 100vw;
-    height: px;
+    height: 100px;
 
     &-main {
       position: fixed;

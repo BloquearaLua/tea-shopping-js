@@ -2,9 +2,6 @@
     <div class="login container">
         <Header title="验证码登录" back="/my"></Header>
         <section>
-            <!-- <div class="login-tel">
-                <input type="text" v-model="userTel" placeholder="请输入手机号" pattern="[0-9]*"/>
-            </div> -->
             <van-form @submit="handleLogin">
                 <van-field
                     v-model="userTel"
@@ -15,6 +12,7 @@
                     :rules="[{ required: true }, { pattern: /^1[23456789]\d{9}$/, message: '手机格式不正确'}]"
                  />
                 <van-field
+                    v-if="loginType === 'code'"
                     v-model="msgCode"
                     center
                     clearable
@@ -27,16 +25,23 @@
                         <van-button size="small" plain type="info" @click="handleMsgCode">{{ codeMsg }}</van-button>
                     </template>
                 </van-field>
+                <van-field
+                    v-if="loginType === 'pwd'"
+                    v-model="userPwd"
+                    center
+                    clearable
+                    type="password"
+                    name="密码"
+                    label="密码"
+                    placeholder="请输入密码"
+                    :rules="[{ required: true }, { pattern: /^\w{6,12}$/, message: '密码格式不正确'}]"
+                />
                 <van-button class="login-btn" type="info" native-type="submit">登录</van-button>
-                <!-- <div class="login-code">
-                    <input type="text" v-model="msgCode" placeholder="请输入短信验证码" pattern="[0-9]*"/>
-                    <button @click="handleMsgCode" :disabled="disabled">{{ codeMsg }}</button>
-                </div> -->
-                <!-- <div class="login-btn" @click="handleLogin">登录</div> -->
-                
+
             </van-form>
             <div class="tab">
                     <span @click="handleUserLogin">密码登录</span>
+                    <span @click="handleRecover">找回密码</span>
                     <span @click="handleRegister">快速注册</span>
                 </div>
         </section>
@@ -44,10 +49,10 @@
 </template>
 
 <script>
-import { Toast } from 'mint-ui';
 import { mapMutations } from "vuex";
 import request from '@/common/api/request';
 import Header from './Header.vue';
+import { Toast } from "vant";
 
 export default {
     name: 'Login', 
@@ -59,6 +64,8 @@ export default {
             msgCode: '',
             codeMsg: '获取验证码',
             trueCode: '',
+            userPwd: '',
+            loginType: 'code',
             rules: {
                 userTel: {
                     rule: /^1[23456789]\d{9}$/,
@@ -67,6 +74,10 @@ export default {
                 msgCode: {
                     rule: /\d{4}/,
                     msg: '手机验证码输入不正确',
+                },
+                userPwd: {
+                    rule: /^\w{6,12}$/,
+                    msg: '密码不能为空，且6至12位数字、字母',
                 }
             }
         }
@@ -74,12 +85,38 @@ export default {
     methods: {
         ...mapMutations(['userLogin']),
         handleUserLogin() {
-            this.$router.push('/userLogin');
+            // this.$router.push('/userLogin');
+            if (this.loginType === "code") {
+                this.loginType = "pwd";
+            } else {
+                this.loginType = "code";
+            }
         },
         validtor(val) {
             return /^1[3456789]\d{9}$/.test(val);
         },
-        async handleLogin() {
+        handleLogin() {
+            this.loginType === 'code' ? this.handleLoginByCode() : this.handleLoginByPwd();
+        },
+        async handleLoginByPwd() {
+            // console.log(this.userTel, this.userPwd);
+            if (!this.validate('userTel')) return;
+            if (!this.validate('userPwd')) return;
+            const data = await request.$axios({ 
+                url: '/api/user/login',
+                methods: 'POST',
+                data: {
+                    userTel: this.userTel,
+                    userPwd: this.userPwd
+                }
+            })
+            console.log('userData:', data[0]);
+            if (!!data) {
+                this.userLogin(data[0]);
+                this.$router.push('/my');
+            }
+        },
+        async handleLoginByCode() {
             console.log(this.userTel, this.msgCode);
             // if (!this.validate('userTel')) return;
             // if (!this.validate('msgCode')) return;
@@ -87,7 +124,7 @@ export default {
             console.log(this.trueCode, this.msgCode);
             if (this.trueCode == this.msgCode) {
                 const data = await request.$axios({
-                    url: 'api/addUser',
+                    url: '/api/user/add',
                     methods: 'POST',
                     data: {
                         userTel: this.userTel
@@ -111,7 +148,7 @@ export default {
             if (!this.validate('userTel')) return;
 
             const data = await request.$axios({
-                url: 'api/login/code',
+                url: '/api/user/login/code',
                 methods: 'POST',
                 data: {
                     phone: this.userTel
@@ -144,6 +181,9 @@ export default {
         handleRegister() {
             this.$router.push('/register')
         },
+        handleRecover() {
+            this.$router.push('/recovery');
+        },
     },
     components: {
         Header,
@@ -166,62 +206,6 @@ section {
         font-weight: 500;
         color: #646566;
     }
-    // display: flex;
-    // flex-direction: column;
-    // align-items: center;
-    // width: 100vw;
-    // background-color: #f5f5f5;
-
-    // div {
-    //     margin: 0.27rem 0;
-    //     width: 8.9rem;
-    //     height: 1.17rem;
-    // }
-
-    // input {
-    //     box-sizing: border-box;
-    //     padding: 0 0.27rem;
-    //     line-height: 1.17rem;
-    //     background-color: #fff;
-    //     border: solid 1px #ccc;
-    //     border-radius: 4px;
-    // }
-    
-    // .login-tel {
-    //     margin-top: 0.8rem;
-    //     input{
-    //         width: 100%;
-    //     }
-    // }
-
-    // .login-code {
-    //     display: flex;
-
-    //     input {
-    //         flex: 1;
-    //     }
-
-    //     button {
-    //         margin-left: 0.27rem;
-    //         padding: 0 0.53rem;
-    //         line-height: 1.17rem;
-    //         background-color: #b0352f;
-    //         color: #fff;
-    //         border: 0;
-    //         border-radius: 4px;
-    //     }
-    // }
-    
-    // .login-btn {
-    //     line-height: 1.17rem;
-    //     color: #fff;
-    //     text-align: center;
-    //     background-color: #b0352f;
-    //     border-radius: 4px;
-
-    // }
-
-    
 }
 
 </style>

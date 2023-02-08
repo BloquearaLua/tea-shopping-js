@@ -15,6 +15,7 @@
 <script>
 import { mapActions, mapGetters, mapMutations, mapState } from 'vuex';
 import request from '@/common/api/request';
+import { Toast } from 'vant';
 
 export default {
     name: 'CartFooter',
