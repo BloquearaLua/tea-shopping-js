@@ -2,12 +2,12 @@ const userDao = require('../dao/users');
 const orderDao = require('../dao/order');
 const cartDao = require('../dao/cart');
 
+const jwt = require('jsonwebtoken');
 const alipaySdk = require('../dao/alipay');
 const { default: axios } = require('axios');
 const AlipayFormData = require('alipay-sdk/lib/form').default;
 
-
-async function getOrderList(req, res, next) {
+async function getOrder(req, res, next) {
     try {
         const { token } = req.headers;
         const { tel } = jwt.decode(token);
@@ -36,26 +36,25 @@ async function addOrder(req, res, next) {
     try {
         const { token } = req.headers;
         const { tel } = jwt.decode(token);
-
-        const { goodsGroup } = req.body; 
+        const { goodsGroup } = req.body;
         let goodsNameArr = [],
             goodsNum = 0,
             goodsPrice = 0;
-        goodsGroup.forEach(item => {
-        goodsNameArr.push(item.goods_name);
-        goodsNum += parseInt(item.goods_num);
-        goodsPrice += parseInt(item.goods_price) * parseInt(item.goods_num);
-        });
+            goodsGroup.forEach(item => {
+                goodsNameArr.push(item.goods_name);
+                goodsNum += parseInt(item.goods_num);
+                goodsPrice += parseInt(item.goods_price) * parseInt(item.goods_num);
+            });
         let goodsName = goodsNameArr.join(',');
-
+        
         const isUser = await userDao.validateUserTel({ tel });
         if (isUser?.length) {
             const uid = isUser[0].id;
-            const orderID = generateOrderID();
+            const orderId = generateOrderID();
             await orderDao.insertOrder({
-                uid, orderID, goodsName, goodsNum, goodsPrice
+                uid, orderId, goodsName, goodsNum, goodsPrice
             });
-            const order = await orderDao.selectOrderByOrderId({ orderID });
+            const order = await orderDao.selectOrderByOrderId({ orderId });
             if (order?.length) {
                 res.send({
                     code: 0,
@@ -253,7 +252,7 @@ function generateOrderID() {
 }
 
 module.exports = {
-    getOrderList,
+    getOrder,
     addOrder,
     submitOrder,
     payOrder,

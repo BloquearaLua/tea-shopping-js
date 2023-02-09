@@ -71,6 +71,7 @@ export default {
   },
   created() {
     this.getCartList();
+    console.log("cart0---", this.cartList, this.checkedList);
   },
   methods: {
     ...mapMutations(['handleCartList', 'checkOne']),

@@ -1,10 +1,10 @@
 <template>
     <div class="path container">
-        <Header title="地址管理" back="/my"></Header>
+        <Header title="地址管理" :back="this.type === 'edit' ? '/my' : ''"></Header>
         <section ref="wrapper">
             <ul v-if="addressList.length">
                 <li v-for="address in addressList" :key="address.id">
-                    <div class="address">
+                    <div class="address" @click="handleGoDetails('select', address)">
                         <div class="base">
                             <!-- <span class="active" v-if="+address.is_default">[默认]</span> -->
                             <van-tag class="icon" color="#DB4455" v-if="+address.is_default" type="danger">默认</van-tag>
@@ -56,11 +56,15 @@ export default {
     computed: {
         ...mapState({ addressList: state => state.address.list}),
     },
+    data() {
+        return {
+            type: 'edit',
+        }
+    }, 
     methods: {
         ...mapMutations(['initAddress']),
         handleGoDetails(type, item) {
-            const selected_type = this.$route.params.type === 'select';
-            if (selected_type) {
+            if (this.type === 'select') {
                 this.$router.replace({
                     name: 'Order',
                     params: {
@@ -81,13 +85,14 @@ export default {
             this.$router.push({
                 name: 'PathDetails',
                 params: {
-                    type,
+                    type: 'edit',
                     data: JSON.stringify(info)
                 }
             });
         },
     },
     async created() {
+        this.type = this.$route.params.type || 'edit';
         const data = await request.$axios({
             url: '/api/address/list',
             methods: 'POST',
@@ -99,9 +104,9 @@ export default {
         this.initAddress(data);
         this.$nextTick(() => {
         new BetterScroll(this.$refs.wrapper, {
-            click: true,
-            movable: true,
-            zoom: true,
+                click: true,
+                movable: true,
+                zoom: true,
             }) 
         })
 

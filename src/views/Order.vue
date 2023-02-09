@@ -43,11 +43,6 @@
             <div class="toolbar"></div>
         </section>
         <footer>
-            <!-- <div class="total" >
-                <div>共有<span class="total-active">{{ total.num }}</span>件商品</div>
-                <span>总计：</span><span class="total-active">￥{{ total.price }} + 0 茶币</span>
-            </div>
-            <div class="submit-order" @click="handleSubmit">提交订单</div> -->
             <van-submit-bar
                 button-text="提交订单"
                 :price="total.price*100"
@@ -72,7 +67,6 @@ export default {
         return {
             paymentType: 'ali',
             path: {},
-            // selectedIds: [],
         }
     },
     computed: {
@@ -84,7 +78,7 @@ export default {
       }),
       selectedList() {
         console.log("selected", this.selectedIds, this.cartList);
-        return this.cartList.filter(item => this.selectedIds.indexOf(item.goods_id) > -1);
+        return this.cartList.filter(item => this.selectedIds.indexOf(item.id) > -1);
       },
       total() {
         let price = 0;
@@ -151,7 +145,7 @@ export default {
         },
         async handleAddress() {
             const data = await request.$axios({
-                url: '/api/address',
+                url: '/api/address/list',
                 methods: 'POST',
                 headers: {
                     token: true
@@ -172,7 +166,7 @@ export default {
         },
         async initCartList() {
             const cartList = await request.$axios({
-                url: '/api/selectCart',
+                url: '/api/cart/list',
                 methods: 'POST',
                 headers: {
                     token: true
@@ -183,7 +177,6 @@ export default {
     },
     async created() {
         this.handleAddress();
-        console.log("???????????????selected", this.selectedIds);
         if (!this.selectedIds.length) {
             console.log("-------------------------");
             this.initSelectedList(this.selectedIds);
@@ -295,7 +288,8 @@ export default {
             display: flex;
             width: 100vw;
             height: 60px;
-            background-color: #1989fa;
+            padding-bottom: 60px;
+            // background-color: #1989fa;
         }
 
         .payment {
@@ -303,6 +297,7 @@ export default {
             // padding-bottom: 0.32rem;
             background-color: #fff;
             border-radius: 10px;
+            padding-bottom: 1.2rem;
 
             &-title {
                 padding: 0.24rem;

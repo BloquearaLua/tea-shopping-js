@@ -91,6 +91,7 @@ export default {
     },
     created() {
         this.type = this.$route.params.type;
+        console.log('type???', this.type);
         if (this.type === 'edit') {
             this.addressInfo = JSON.parse(this.$route.params.data);
         }

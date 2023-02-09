@@ -100,7 +100,7 @@ export default {
                 if (!!data) {
                     Toast.success('删除成功');
                     const cartRes = await request.$axios({
-                        url: '/api/selectCart',
+                        url: '/api/cart/list',
                         methods: 'POST',
                         headers: {
                             token: true

@@ -2,38 +2,49 @@ const jwt = require('jsonwebtoken');
 
 const userDao = require('../dao/users');
 const cartDao = require('../dao/cart');
+const goodsDao = require('../dao/goods');
+const { getTokenExp } = require('../util/token');
 
 // 添加商品到购物车
 async function addCart(req, res, next) {
     try {
         const { goodsId } = req.body;
         const { token } = req.headers;
-        const { tel } = jwt.decode(token);
+        const { tel, exp } = jwt.decode(token);
+
+        const isExp = getTokenExp(exp);
+        if (isExp) {
+            res.send({
+                code: 1000,
+                success: false,
+                msg: 'token过期了',
+            });
+            return;
+        }
         
         const isUser = await userDao.validateUserTel({ tel });
         if (isUser?.length) {
-            const uid = results[0].id;
+            const uid = isUser[0].id;
             const goodsInfo = await goodsDao.getGoodsById({ goodsId });
             const { goods_name, goods_price, goods_num, goods_imgUrl } = goodsInfo;
             const inCart = await cartDao.getItemByUidGoodsId({
                 uid,
                 goodsId
             });
+            
             if (inCart?.length) {
-                const updateSuccess = await cartDao.updateCartNum({
+                await cartDao.updateCartNum({
                     id: inCart[0].id,
                     num: parseInt(inCart[0].goods_num) + 1
                 });
-                if (updateSuccess) {
-                    res.send({
-                        code: 0,
-                        success: true,
-                        msg: '添加成功',
-                        data: [],
-                      })
-                }
+                res.send({
+                    code: 0,
+                    success: true,
+                    msg: '添加成功',
+                    data: [],
+                })
             } else {
-                const insertSuccess = await cartDao.insertCart({
+                await cartDao.insertCart({
                     uid,
                     goodsId,
                     goods_name,
@@ -41,14 +52,12 @@ async function addCart(req, res, next) {
                     goods_num,
                     goods_imgUrl,
                 })
-                if (insertSuccess) {
-                    res.send({
-                        code: 0,
-                        success: true,
-                        message: '添加成功',
-                        data: []
-                    });
-                }
+                res.send({
+                    code: 0,
+                    success: true,
+                    message: '添加成功',
+                    data: []
+                });
             }
 
         }
@@ -56,7 +65,7 @@ async function addCart(req, res, next) {
         res.send({
             code: 10000,
             success: false,
-            msg: '添加失败'
+            msg: error
         })
     }
 }

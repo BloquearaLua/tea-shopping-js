@@ -2,6 +2,7 @@ import axios from 'axios';
 import store from "@/store";
 import router from "@/router";
 import { Toast } from 'vant';
+
 export default {
     common: {
         methods: 'GET',
@@ -27,7 +28,7 @@ export default {
         if (token) {
             console.log("user", store.state.user);
             const { token: localToken } = store.state.user;
-            // console.log('localToken', localToken);
+            console.log('localToken', localToken);
             if (!localToken) {
                 router.push('/login');
             } else {
@@ -40,6 +41,13 @@ export default {
             let data = value.data.data;
             let code = value.data.code;
             return new Promise((res, rej) => {
+                // token 过期
+                if (code === 1000) {
+                    loadingToast.clear();
+                    store.commit('logout');
+                    router.push('/login');
+                }
+
                 if (code !== 0) {
                     loadingToast.clear();
                     Toast({

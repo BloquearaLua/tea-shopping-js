@@ -94,6 +94,7 @@ export default {
             this.$router.back();
         },
         async handleBuy() {
+            console.log("fds555555555555", [this.currentItem]);
             const data = await request.$axios({
                 url: '/api/order/add',
                 methods: 'POST',
@@ -101,7 +102,7 @@ export default {
                     token: true,
                 },
                 data: {
-                    goodsGroup: [{ ...this.currentItem, }]
+                    goodsGroup: [{ ...this.currentItem }]
                 }
             })
             console.log("order", data);

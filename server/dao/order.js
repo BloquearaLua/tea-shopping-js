@@ -30,8 +30,8 @@ function updateStatus(params) {
 
 function insertOrder(params) {
     return new Promise((resolve, reject) => {
-        const { uid, orderID, goodsName, goodsPrice, goodsNum, orderStatus } = params;
-        const sql = `insert into store_order(uid, order_id, goods_name, goods_price, goods_num, order_status) values(${uid}, ${orderID}, '${goodsName}', ${goodsPrice}, ${goodsNum}, 1)`;
+        const { uid, orderId, goodsName, goodsPrice, goodsNum, orderStatus } = params;
+        const sql = `insert into store_order(uid, order_id, goods_name, goods_price, goods_num, order_status) values(${uid}, ${orderId}, '${goodsName}', ${goodsPrice}, ${goodsNum}, 1)`;
         conn.query(sql, err => {
             if (!err) {
                 resolve(true);

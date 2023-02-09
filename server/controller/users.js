@@ -10,7 +10,7 @@ async function login(req, res, next) {
         const payload = { tel: userTel };
         const secret = 'tea_mall';
         const token = jwt.sign(payload, secret, {
-            expiresIn: 60
+            expiresIn: 10
         });
         if (isUser?.length) {
             if (isUser[0].pwd === userPwd + '') {

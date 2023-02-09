@@ -1,27 +1,38 @@
 const jwt = require('jsonwebtoken');
+const { getTokenExp } = require('../util/token');
 const addressDao = require('../dao/address');
 const userDao = require('../dao/users');
 
 async function addAddress(req, res, next) {
     try {
         const { token } = req.headers;
-        const { tel: loginTel } = jwt.decode(token);
-        const { name, tel, province, city, county, country = "中国", addressDetail, isDefault, areaCode } = req.body;
-        const isUser = await userDao.validateUserTel({ tel: loginTel });
-        if (isUser?.length) {
-            const uid = isUser[0].id;
-            if (!!isDefault) {
-                await addressDao.updateDefault({ uid });
+        const { tel: loginTel, exp } = jwt.decode(token);
+        
+        const isExp = getTokenExp(exp);
+        if (!isExp) {
+            const { name, tel, province, city, county, country = "中国", addressDetail, isDefault, areaCode } = req.body;
+            const isUser = await userDao.validateUserTel({ tel: loginTel });
+            if (isUser?.length) {
+                const uid = isUser[0].id;
+                if (!!isDefault) {
+                    await addressDao.updateDefault({ uid });
+                }
+                await addressDao.insertAddress({
+                    uid, name, tel, province, city, county, country, addressDetail, isDefault, areaCode
+                });
+                res.send({
+                    code: 0,
+                    success: true,
+                    msg: '添加成功',
+                    data: []
+                });
             }
-            await addressDao.insertAddress({
-                uid, name, tel, province, city, county, country, addressDetail, isDefault, areaCode
-            });
+        } else {
             res.send({
-                code: 0,
-                success: true,
-                msg: '添加成功',
-                data: []
-            });
+                code: 1000,
+                success: false,
+                msg: 'token过期'
+            })
         }
     } catch (error) {
         res.send({
@@ -35,17 +46,27 @@ async function addAddress(req, res, next) {
 async function getAddressList(req, res, next) {
     try {
         const { token } = req.headers;
-        const { tel } = jwt.decode(token);
-        const isUser = await userDao.validateUserTel({ tel });
-        console.log("user", isUser);
-        if (isUser?.length) {
-            const uid = isUser[0].id;
-            const addressList = await addressDao.selectAddressList({ uid });
+        const { tel, exp } = jwt.decode(token);
+
+        const isExp = getTokenExp(exp);
+        if (!isExp) {
+            const isUser = await userDao.validateUserTel({ tel });
+            console.log("user", isUser);
+            if (isUser?.length) {
+                const uid = isUser[0].id;
+                const addressList = await addressDao.selectAddressList({ uid });
+                res.send({
+                    code: 0,
+                    success: true,
+                    msg: '获取成功',
+                    data: addressList
+                })
+            }
+        } else {
             res.send({
-                code: 0,
-                success: true,
-                msg: '获取成功',
-                data: addressList
+                code: 1000,
+                success: false,
+                msg: 'token过期'
             })
         }
     } catch (error) {
@@ -62,14 +83,24 @@ async function deleteAddress(req, res, next) {
         const { token } = req.headers;
         const { tel: loginTel } = jwt.decode(token);
         const { id } = req.body;
-        const isUser = await userDao.validateUserTel({ tel: loginTel });
-        if (isUser?.length) {
-            await addressDao.deleteAddress({ id });
+
+        const isExp = getTokenExp(exp);
+        if (!isExp) {
+            const isUser = await userDao.validateUserTel({ tel: loginTel });
+            if (isUser?.length) {
+                await addressDao.deleteAddress({ id });
+                res.send({
+                    code: 0,
+                    success: true,
+                    msg: '删除成功',
+                    data: []
+                })
+            }
+        } else {
             res.send({
-                code: 0,
-                success: true,
-                msg: '删除成功',
-                data: []
+                code: 1000,
+                success: false,
+                msg: 'token过期'
             })
         }
     } catch (error) {
@@ -85,23 +116,34 @@ async function editAddress(req, res, next) {
     try {
         const { token } = req.headers;
         const { tel: loginTel } = jwt.decode(token);
-        const { id, name, tel, province, city, county, country, addressDetail, isDefault, areaCode } = req.body;
-        const isUser = await userDao.validateUserTel({ tel: loginTel });
-        if (isUser?.length) {
-            const uid = isUser[0].id;
-            if (!!isDefault) { // 为默认
-                await addressDao.updateDefault({ uid });
+
+        const isExp = getTokenExp(exp);
+        if (!isExp) {
+            const { id, name, tel, province, city, county, country, addressDetail, isDefault, areaCode } = req.body;
+            const isUser = await userDao.validateUserTel({ tel: loginTel });
+            if (isUser?.length) {
+                const uid = isUser[0].id;
+                if (!!isDefault) { // 为默认
+                    await addressDao.updateDefault({ uid });
+                }
+                await addressDao.updateAddress({
+                    id, name, tel, province, city, county, country, addressDetail, isDefault, areaCode
+                });
+                res.send({
+                    code: 0,
+                    success: true,
+                    msg: '编辑成功',
+                    data: []
+                })
             }
-            await addressDao.updateAddress({
-                id, name, tel, province, city, county, country, addressDetail, isDefault, areaCode
-            });
+        } else {
             res.send({
-                code: 0,
-                success: true,
-                msg: '编辑成功',
-                data: []
+                code: 1000,
+                success: false,
+                msg: 'token过期'
             })
         }
+        
     } catch (error) {
         res.send({
             code: 10000,
